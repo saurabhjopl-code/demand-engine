@@ -10,7 +10,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 15px 25px;
+  padding: 18px 30px;
   background: var(--white);
   border-bottom: 1px solid var(--border);
 }
@@ -24,6 +24,7 @@ body {
   left: 50%;
   transform: translateX(-50%);
   font-weight: 600;
+  font-size: 18px;
 }
 
 /* ACTION ROW */
@@ -31,7 +32,7 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 15px 25px;
+  padding: 18px 30px;
   background: var(--white);
   border-bottom: 1px solid var(--border);
   gap: 20px;
@@ -72,19 +73,20 @@ body {
   overflow-x: auto;
 }
 
-/* FILTER ROW */
+/* FILTER ROW - Modern SaaS */
 .filter-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 25px;
-  background: var(--white);
+  padding: 20px 30px;
+  background: #f9fafc;
   border-bottom: 1px solid var(--border);
 }
 
 .filters-left {
   display: flex;
-  gap: 15px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .filters-right {
@@ -96,21 +98,22 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(3, auto);
-  gap: 20px;
-  padding: 20px 25px;
+  gap: 25px;
+  padding: 30px;
 }
 
-/* REPORT */
+/* TABS - Modern Pills */
 .report-tabs {
   display: flex;
-  gap: 10px;
-  padding: 15px 25px;
+  gap: 12px;
+  padding: 20px 30px;
   background: var(--white);
   border-bottom: 1px solid var(--border);
 }
 
+/* REPORT */
 .report-container {
-  padding: 25px;
-  height: calc(100vh - 500px);
+  padding: 30px;
+  height: calc(100vh - 520px);
   overflow-y: auto;
 }

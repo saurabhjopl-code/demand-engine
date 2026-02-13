@@ -1,4 +1,7 @@
-/* CARD WRAPPER */
+/* ======================================================
+   REPORT CARD WRAPPER
+====================================================== */
+
 .report-card {
   background: var(--white);
   border-radius: var(--radius);
@@ -7,7 +10,10 @@
   overflow: hidden;
 }
 
-/* CARD HEADER */
+/* ======================================================
+   CARD HEADER
+====================================================== */
+
 .card-header {
   padding: 15px 20px;
   border-bottom: 1px solid var(--border);
@@ -21,17 +27,29 @@
   text-align: center;
 }
 
-/* CARD BODY */
+/* ======================================================
+   CARD BODY
+====================================================== */
+
 .card-body {
   padding: 20px;
 }
 
-/* TABLES */
+/* If table should scroll but header sticky */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+/* ======================================================
+   TABLE BASE
+====================================================== */
+
 .report-table,
 .summary-table {
   width: 100%;
   border-collapse: collapse;
   text-align: center;
+  font-size: 13px;
 }
 
 .report-table th,
@@ -43,9 +61,88 @@
   text-align: center;
 }
 
-.report-table thead {
+/* ======================================================
+   STICKY HEADER (CORRECT IMPLEMENTATION)
+====================================================== */
+
+.report-table thead th {
   position: sticky;
   top: 0;
   background: var(--white);
-  z-index: 2;
+  z-index: 5;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+}
+
+/* ======================================================
+   STYLE ROW (PARENT ROW)
+====================================================== */
+
+.style-row {
+  background: #f9fafb;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.style-row:hover {
+  background: #eef2ff;
+}
+
+/* Expand icon cell */
+.expand-toggle {
+  text-align: left;
+  padding-left: 10px;
+}
+
+/* ======================================================
+   SKU CHILD ROW
+====================================================== */
+
+.sku-row {
+  background: var(--white);
+  transition: background 0.2s ease;
+}
+
+.sku-row:hover {
+  background: #f3f4f6;
+}
+
+.sku-indent {
+  text-align: left;
+  padding-left: 25px;
+  font-weight: 500;
+}
+
+/* ======================================================
+   BUY BUCKET ROW
+====================================================== */
+
+.bucket-row {
+  background: #f3f4f6;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.bucket-row:hover {
+  background: #e5e7eb;
+}
+
+.bucket-style {
+  background: var(--white);
+  transition: background 0.2s ease;
+}
+
+.bucket-style:hover {
+  background: #f3f4f6;
+}
+
+/* ======================================================
+   GRAND ROW (IF USED)
+====================================================== */
+
+.grand-row {
+  background: #f9fafb;
+  font-weight: 700;
 }

@@ -15,27 +15,25 @@
   background: #f3f4f6;
 }
 
-.search-input {
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  min-width: 200px;
-}
-
+.search-input,
 .filter-select {
   padding: 8px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  min-width: 140px;
 }
 
+/* SUMMARY CARDS */
 .summary-card {
   background: var(--white);
-  padding: 20px;
+  padding: 25px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   font-weight: 500;
+  text-align: center;
 }
 
+/* TABS */
 .tab {
   padding: 8px 16px;
   border: none;
@@ -49,9 +47,9 @@
   color: white;
 }
 
+/* PROGRESS */
 .progress-container {
-  position: relative;
-  width: 250px;
+  width: 300px;
   height: 10px;
   background: #e5e7eb;
   border-radius: 50px;
@@ -66,6 +64,6 @@
 }
 
 .progress-text {
-  margin-left: 10px;
   font-size: 12px;
+  font-weight: 500;
 }

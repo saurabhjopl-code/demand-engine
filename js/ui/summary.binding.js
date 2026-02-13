@@ -50,9 +50,7 @@ function renderSaleDetails(card) {
           <th>DRR</th>
         </tr>
       </thead>
-      <tbody>
-        ${rowsHTML}
-      </tbody>
+      <tbody>${rowsHTML}</tbody>
     </table>
   `;
 }
@@ -102,9 +100,7 @@ function renderStockOverview(card) {
           <th>SC</th>
         </tr>
       </thead>
-      <tbody>
-        ${rowsHTML}
-      </tbody>
+      <tbody>${rowsHTML}</tbody>
     </table>
   `;
 }
@@ -142,15 +138,13 @@ function renderSCBand(card) {
           <th>Total Stock</th>
         </tr>
       </thead>
-      <tbody>
-        ${rowsHTML}
-      </tbody>
+      <tbody>${rowsHTML}</tbody>
     </table>
   `;
 }
 
 /* ==========================================
-   4️⃣ SIZE-WISE ANALYSIS (ROWSPAN FORMAT)
+   4️⃣ SIZE-WISE ANALYSIS (FINAL FORMAT)
 ========================================== */
 
 function renderSizeWise(card) {
@@ -158,7 +152,7 @@ function renderSizeWise(card) {
   const rows = computedStore.summaries.sizeWise;
   if (!rows || rows.length === 0) return;
 
-  // Group by Category
+  // Group rows by category
   const categoryMap = {};
 
   rows.forEach(row => {
@@ -168,23 +162,20 @@ function renderSizeWise(card) {
     categoryMap[row.category].push(row);
   });
 
+  const grandUnits = rows.reduce((sum, r) => sum + r.unitsSold, 0);
+  const grandStock = rows.reduce((sum, r) => sum + r.unitsInStock, 0);
+
   let rowsHTML = "";
-  let grandUnits = 0;
-  let grandStock = 0;
 
   Object.keys(categoryMap).forEach(category => {
 
     const catRows = categoryMap[category];
+    const categoryUnits = catRows.reduce((sum, r) => sum + r.unitsSold, 0);
+    const categoryStock = catRows.reduce((sum, r) => sum + r.unitsInStock, 0);
 
-    const totalUnits = catRows[0].totalUnits;
-    const totalStock = catRows[0].totalStock;
-
-    const categoryShare = grandTotalUnits(rows) > 0
-      ? ((totalUnits / grandTotalUnits(rows)) * 100).toFixed(2)
+    const categoryShare = grandUnits > 0
+      ? ((categoryUnits / grandUnits) * 100).toFixed(2)
       : 0;
-
-    grandUnits += totalUnits;
-    grandStock += totalStock;
 
     catRows.forEach((row, index) => {
 
@@ -199,7 +190,7 @@ function renderSizeWise(card) {
       rowsHTML += `<td>${format(row.unitsSold)}</td>`;
 
       if (index === 0) {
-        rowsHTML += `<td rowspan="${catRows.length}">${format(totalUnits)}</td>`;
+        rowsHTML += `<td rowspan="${catRows.length}">${format(categoryUnits)}</td>`;
       }
 
       rowsHTML += `<td>${row.sizeShare}%</td>`;
@@ -211,7 +202,7 @@ function renderSizeWise(card) {
       rowsHTML += `<td>${format(row.unitsInStock)}</td>`;
 
       if (index === 0) {
-        rowsHTML += `<td rowspan="${catRows.length}">${format(totalStock)}</td>`;
+        rowsHTML += `<td rowspan="${catRows.length}">${format(categoryStock)}</td>`;
       }
 
       rowsHTML += `</tr>`;
@@ -242,20 +233,14 @@ function renderSizeWise(card) {
           <th>Total Stock</th>
         </tr>
       </thead>
-      <tbody>
-        ${rowsHTML}
-      </tbody>
+      <tbody>${rowsHTML}</tbody>
     </table>
   `;
 }
 
 /* ==========================================
-   HELPERS
+   FORMATTER
 ========================================== */
-
-function grandTotalUnits(rows) {
-  return rows.reduce((sum, r) => sum + r.unitsSold, 0);
-}
 
 function format(value) {
   return Number(value || 0).toLocaleString("en-IN");

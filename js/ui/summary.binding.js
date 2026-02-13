@@ -2,22 +2,8 @@ import { computedStore } from "../store/computed.store.js";
 
 export function renderSummaries() {
 
-  // Ensure DOM ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", renderSummariesInternal);
-  } else {
-    renderSummariesInternal();
-  }
-}
-
-function renderSummariesInternal() {
-
   const cards = document.querySelectorAll(".summary-card");
-
-  if (!cards || cards.length < 3) {
-    console.warn("Summary cards not found in DOM.");
-    return;
-  }
+  if (!cards || cards.length < 3) return;
 
   renderSaleDetails(cards[0]);
   renderStockOverview(cards[1]);
@@ -34,9 +20,20 @@ function renderSaleDetails(card) {
 
   card.innerHTML = `
     <h3>Sale Details</h3>
-    <div>Total Units Sold: <strong>${data.totalUnitsSold || 0}</strong></div>
-    <div>Total Days: <strong>${data.totalDays || 0}</strong></div>
-    <div>Overall DRR: <strong>${data.overallDRR || 0}</strong></div>
+    <table class="mini-summary-table">
+      <tr>
+        <td>Total Units Sold</td>
+        <td><strong>${formatNumber(data.totalUnitsSold)}</strong></td>
+      </tr>
+      <tr>
+        <td>Total Days</td>
+        <td><strong>${data.totalDays}</strong></td>
+      </tr>
+      <tr>
+        <td>Overall DRR</td>
+        <td><strong>${formatNumber(data.overallDRR)}</strong></td>
+      </tr>
+    </table>
   `;
 }
 
@@ -50,10 +47,24 @@ function renderStockOverview(card) {
 
   card.innerHTML = `
     <h3>Current FC Stock</h3>
-    <div>Total Stock: <strong>${data.totalStock || 0}</strong></div>
-    <div>Total Units Sold: <strong>${data.totalUnitsSold || 0}</strong></div>
-    <div>Overall DRR: <strong>${data.overallDRR || 0}</strong></div>
-    <div>Overall SC: <strong>${data.overallSC || 0}</strong></div>
+    <table class="mini-summary-table">
+      <tr>
+        <td>Total Stock</td>
+        <td><strong>${formatNumber(data.totalStock)}</strong></td>
+      </tr>
+      <tr>
+        <td>Total Units Sold</td>
+        <td><strong>${formatNumber(data.totalUnitsSold)}</strong></td>
+      </tr>
+      <tr>
+        <td>Overall DRR</td>
+        <td><strong>${formatNumber(data.overallDRR)}</strong></td>
+      </tr>
+      <tr>
+        <td>Overall SC</td>
+        <td><strong>${formatNumber(data.overallSC)}</strong></td>
+      </tr>
+    </table>
   `;
 }
 
@@ -65,8 +76,6 @@ function renderSCBandSummary(card) {
 
   const data = computedStore.summaries.scBandSummary;
 
-  let html = `<h3>SC Band Summary</h3>`;
-
   const bandOrder = [
     "Critical",
     "RISK",
@@ -76,20 +85,46 @@ function renderSCBandSummary(card) {
     "Overstock"
   ];
 
+  let rows = "";
+
   bandOrder.forEach(band => {
 
     if (data[band]) {
 
-      html += `
-        <div style="margin-top:8px;">
-          <strong>${band}</strong><br/>
-          SKUs: ${data[band].skuCount}<br/>
-          Units Sold: ${data[band].totalUnitsSold}<br/>
-          Stock: ${data[band].totalStock}
-        </div>
+      rows += `
+        <tr>
+          <td>${band}</td>
+          <td>${data[band].skuCount}</td>
+          <td>${formatNumber(data[band].totalUnitsSold)}</td>
+          <td>${formatNumber(data[band].totalStock)}</td>
+        </tr>
       `;
     }
   });
 
-  card.innerHTML = html;
+  card.innerHTML = `
+    <h3>SC Band Summary</h3>
+    <table class="mini-summary-table">
+      <thead>
+        <tr>
+          <th>Band</th>
+          <th>SKUs</th>
+          <th>Units Sold</th>
+          <th>Stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  `;
+}
+
+/* ======================================
+   HELPER
+====================================== */
+
+function formatNumber(value) {
+  if (value === undefined || value === null) return 0;
+  return Number(value).toLocaleString("en-IN");
 }

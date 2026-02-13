@@ -19,7 +19,7 @@ function format(val) {
 }
 
 /* ==========================================
-   DEMAND REPORT (EXPANDABLE BY STYLE)
+   DEMAND REPORT (STYLE → SKU EXPANDABLE)
 ========================================== */
 
 function renderDemandReport() {
@@ -51,24 +51,26 @@ function renderDemandReport() {
 
   styles.forEach((style, index) => {
 
+    const totals = style.totals || {};
+
     html += `
       <tr class="style-row" data-style="${index}">
-        <td class="expand-toggle">▶ ${style.styleID}</td>
-        <td>${format(style.totals.sales)}</td>
-        <td>${format(style.totals.stock)}</td>
-        <td>${format(style.totals.drr)}</td>
-        <td>${format(style.totals.sc)}</td>
-        <td>${format(style.totals.required45)}</td>
-        <td>${format(style.totals.required60)}</td>
-        <td>${format(style.totals.required90)}</td>
-        <td>${format(style.totals.direct90)}</td>
-        <td>${format(style.totals.inProduction)}</td>
-        <td>${format(style.totals.pend90)}</td>
-        <td>${style.buyBucket}</td>
+        <td class="expand-toggle">▶ ${style.styleID || "-"}</td>
+        <td>${format(totals.sales)}</td>
+        <td>${format(totals.stock)}</td>
+        <td>${format(totals.drr)}</td>
+        <td>${format(totals.sc)}</td>
+        <td>${format(totals.required45)}</td>
+        <td>${format(totals.required60)}</td>
+        <td>${format(totals.required90)}</td>
+        <td>${format(totals.direct90)}</td>
+        <td>${format(totals.inProduction)}</td>
+        <td>${format(totals.pend90)}</td>
+        <td>${style.buyBucket || "-"}</td>
       </tr>
     `;
 
-    style.skus.forEach(sku => {
+    (style.skus || []).forEach(sku => {
 
       html += `
         <tr class="sku-row style-${index}" style="display:none;">
@@ -98,22 +100,25 @@ function renderDemandReport() {
 }
 
 /* ==========================================
-   EXPAND / COLLAPSE LOGIC
+   STYLE EXPAND / COLLAPSE
 ========================================== */
 
 function attachExpandEvents() {
 
-  const toggles = document.querySelectorAll(".style-row");
+  const styleRows = document.querySelectorAll(".style-row");
 
-  toggles.forEach(row => {
+  styleRows.forEach(row => {
+
+    row.onclick = null;
 
     row.addEventListener("click", () => {
 
       const index = row.dataset.style;
       const skuRows = document.querySelectorAll(`.style-${index}`);
-      const toggleCell = row.querySelector(".expand-toggle");
+      if (!skuRows.length) return;
 
-      const isOpen = skuRows[0]?.style.display === "table-row";
+      const toggleCell = row.querySelector(".expand-toggle");
+      const isOpen = skuRows[0].style.display === "table-row";
 
       skuRows.forEach(r => {
         r.style.display = isOpen ? "none" : "table-row";
@@ -150,7 +155,7 @@ function renderBuyBucketSummary() {
 
   Object.keys(buckets).forEach((bucket, index) => {
 
-    const data = buckets[bucket];
+    const data = buckets[bucket] || { totalPendancy: 0, styles: [] };
 
     html += `
       <tr class="bucket-row" data-bucket="${index}">
@@ -159,12 +164,12 @@ function renderBuyBucketSummary() {
       </tr>
     `;
 
-    data.styles.forEach(style => {
+    (data.styles || []).forEach(style => {
 
       html += `
         <tr class="bucket-style bucket-${index}" style="display:none;">
           <td class="sku-indent">${style.styleID}</td>
-          <td>${format(style.totals.pend90)}</td>
+          <td>${format(style.totals?.pend90)}</td>
         </tr>
       `;
     });
@@ -177,19 +182,26 @@ function renderBuyBucketSummary() {
   attachBucketEvents();
 }
 
+/* ==========================================
+   BUCKET EXPAND / COLLAPSE
+========================================== */
+
 function attachBucketEvents() {
 
-  const rows = document.querySelectorAll(".bucket-row");
+  const bucketRows = document.querySelectorAll(".bucket-row");
 
-  rows.forEach(row => {
+  bucketRows.forEach(row => {
+
+    row.onclick = null;
 
     row.addEventListener("click", () => {
 
       const index = row.dataset.bucket;
       const styles = document.querySelectorAll(`.bucket-${index}`);
-      const toggleCell = row.querySelector(".expand-toggle");
+      if (!styles.length) return;
 
-      const isOpen = styles[0]?.style.display === "table-row";
+      const toggleCell = row.querySelector(".expand-toggle");
+      const isOpen = styles[0].style.display === "table-row";
 
       styles.forEach(r => {
         r.style.display = isOpen ? "none" : "table-row";

@@ -10,6 +10,7 @@ export function buildSummaries() {
   buildMonthWiseSaleSummary();
   buildFCWiseStockSummary();
   buildNumericSCBandSummary();
+  buildSizeWiseSummary(); // 🔥 NEW
 }
 
 /* ==========================================
@@ -194,4 +195,97 @@ function buildNumericSCBandSummary() {
   }));
 
   computedStore.summaries.scBandSummary = rows;
+}
+
+/* ==========================================
+   4️⃣ SIZE-WISE ANALYSIS
+========================================== */
+
+function buildSizeWiseSummary() {
+
+  const salesData = dataStore.get("Sales") || [];
+  const stockData = dataStore.get("Stock") || [];
+  const styleStatus = dataStore.get("Style Status") || [];
+
+  const styleCategoryMap = {};
+
+  styleStatus.forEach(row => {
+    styleCategoryMap[row["Style ID"]] = row["Category"] || "Unknown";
+  });
+
+  const categoryMap = {};
+
+  salesData.forEach(row => {
+
+    const style = row["Style ID"];
+    const size = row["Size"];
+    const units = Number(row["Units"] || 0);
+    const category = styleCategoryMap[style] || "Unknown";
+
+    if (!categoryMap[category]) {
+      categoryMap[category] = {
+        totalUnits: 0,
+        totalStock: 0,
+        sizes: {}
+      };
+    }
+
+    if (!categoryMap[category].sizes[size]) {
+      categoryMap[category].sizes[size] = {
+        unitsSold: 0,
+        stock: 0
+      };
+    }
+
+    categoryMap[category].sizes[size].unitsSold += units;
+    categoryMap[category].totalUnits += units;
+  });
+
+  stockData.forEach(row => {
+
+    const style = row["Style ID"];
+    const size = row["Size"];
+    const units = Number(row["Units"] || 0);
+    const category = styleCategoryMap[style] || "Unknown";
+
+    if (!categoryMap[category]) return;
+
+    if (!categoryMap[category].sizes[size]) {
+      categoryMap[category].sizes[size] = {
+        unitsSold: 0,
+        stock: 0
+      };
+    }
+
+    categoryMap[category].sizes[size].stock += units;
+    categoryMap[category].totalStock += units;
+  });
+
+  const finalRows = [];
+
+  Object.keys(categoryMap).forEach(category => {
+
+    const catObj = categoryMap[category];
+
+    Object.keys(catObj.sizes).forEach(size => {
+
+      const sizeObj = catObj.sizes[size];
+
+      const sizeShare = catObj.totalUnits > 0
+        ? (sizeObj.unitsSold / catObj.totalUnits) * 100
+        : 0;
+
+      finalRows.push({
+        size,
+        category,
+        unitsSold: sizeObj.unitsSold,
+        totalUnits: catObj.totalUnits,
+        sizeShare: Number(sizeShare.toFixed(2)),
+        unitsInStock: sizeObj.stock,
+        totalStock: catObj.totalStock
+      });
+    });
+  });
+
+  computedStore.summaries.sizeWise = finalRows;
 }

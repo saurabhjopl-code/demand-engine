@@ -11,6 +11,7 @@ export function buildSummaries() {
   buildFCWiseStockSummary();
   buildNumericSCBandSummary();
   buildSizeWiseSummary();
+  buildCompanyRemarkSummary(); 
 }
 
 /* ==========================================
@@ -261,3 +262,72 @@ function buildSizeWiseSummary() {
 
   computedStore.summaries.sizeWise = finalRows;
 }
+/* ==========================================
+   5️⃣ COMPANY REMARK SUMMARY
+========================================== */
+
+function buildCompanyRemarkSummary() {
+
+  const salesData = dataStore.get("Sales") || [];
+  const stockData = dataStore.get("Stock") || [];
+  const styleStatus = dataStore.get("Style Status") || [];
+  const totalDays = computedStore.totalDays || 0;
+
+  const styleRemarkMap = {};
+
+  styleStatus.forEach(row => {
+    styleRemarkMap[row["Style ID"]] = row["Company Remark"] || "Unknown";
+  });
+
+  const remarkMap = {};
+
+  salesData.forEach(row => {
+
+    const style = row["Style ID"];
+    const units = Number(row["Units"] || 0);
+    const remark = styleRemarkMap[style] || "Unknown";
+
+    if (!remarkMap[remark]) {
+      remarkMap[remark] = {
+        remark,
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    remarkMap[remark].totalUnits += units;
+  });
+
+  stockData.forEach(row => {
+
+    const style = row["Style ID"];
+    const units = Number(row["Units"] || 0);
+    const remark = styleRemarkMap[style] || "Unknown";
+
+    if (!remarkMap[remark]) {
+      remarkMap[remark] = {
+        remark,
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    remarkMap[remark].totalStock += units;
+  });
+
+  const rows = Object.values(remarkMap);
+
+  rows.forEach(obj => {
+
+    obj.drr = totalDays > 0
+      ? Number((obj.totalUnits / totalDays).toFixed(2))
+      : 0;
+
+    obj.sc = obj.drr > 0
+      ? Math.round(obj.totalStock / obj.drr)
+      : 0;
+  });
+
+  computedStore.summaries.companyRemark = rows;
+}
+

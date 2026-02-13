@@ -10,6 +10,7 @@ export function renderSummaries() {
   renderSCBand(cards[2]);
   renderSizeWise(cards[3]);
   renderCompanyRemark(cards[4]);
+  renderCategory(cards[5]);
 }
 
 /* ==========================================
@@ -271,6 +272,44 @@ function renderCompanyRemark(card) {
       <thead>
         <tr>
           <th>Company Remark</th>
+          <th>Total Units Sold</th>
+          <th>DRR</th>
+          <th>Total Stock</th>
+          <th>SC</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>
+  `;
+}
+function renderCategory(card) {
+
+  const rows = computedStore.summaries.category;
+  if (!rows) return;
+
+  let rowsHTML = "";
+
+  rows
+    .sort((a,b) => b.totalUnits - a.totalUnits)
+    .forEach(row => {
+
+      rowsHTML += `
+        <tr>
+          <td>${row.category}</td>
+          <td>${format(row.totalUnits)}</td>
+          <td>${format(row.drr)}</td>
+          <td>${format(row.totalStock)}</td>
+          <td>${format(row.sc)}</td>
+        </tr>
+      `;
+    });
+
+  card.innerHTML = `
+    <h3>Category-wise Sale</h3>
+    <table class="mini-summary-table">
+      <thead>
+        <tr>
+          <th>Category</th>
           <th>Total Units Sold</th>
           <th>DRR</th>
           <th>Total Stock</th>

@@ -2,8 +2,15 @@ import { fetchSheet } from "../data/fetch.service.js";
 import { parseCSV } from "../data/parser.service.js";
 import { validateHeaders } from "../data/validator.service.js";
 import { dataStore } from "../store/data.store.js";
+import { computedStore } from "../store/computed.store.js";
+
+import { buildSummaries } from "../engine/summary.engine.js";
+import { renderSummaries } from "../ui/summary.binding.js";
+
+import { buildReports } from "../engine/report.engine.js";
+import { renderReports } from "../ui/report.binding.js";
+
 import { populateFilters } from "../ui/filter.populate.js";
-import { initializeEngine } from "../engine/engine.init.js";
 
 /* ================================
    SHEET CONFIGURATION
@@ -64,6 +71,8 @@ const refreshBtn = document.getElementById("refreshBtn");
 export async function loadSheets() {
 
   dataStore.clear();
+  computedStore.reset?.();
+
   resetUI();
 
   let completed = 0;
@@ -87,11 +96,17 @@ export async function loadSheets() {
     progressText.textContent = percent + "%";
   }
 
-  // Populate filters
+  /* ===== AFTER ALL SHEETS LOAD ===== */
+
   populateFilters(dataStore.raw);
 
-  // 🔥 Initialize full engine
-  initializeEngine();
+  buildSummaries();
+  renderSummaries();
+
+  buildReports();
+  renderReports();
+
+  console.log("Summaries & Reports Rendered");
 }
 
 /* ================================
@@ -116,7 +131,6 @@ function resetUI() {
 function updateSheetInfo(name, count) {
 
   const regex = new RegExp(`${name}:\\s*\\d+`);
-
   sheetInfo.textContent =
     sheetInfo.textContent.replace(regex, `${name}: ${count}`);
 }

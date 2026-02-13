@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Demand Planning Engine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="icon" href="./favicon.ico" />
+  <link rel="icon" href="./favicon.ico" />
   <link rel="stylesheet" href="./css/reset.css" />
   <link rel="stylesheet" href="./css/variables.css" />
   <link rel="stylesheet" href="./css/layout.css" />
@@ -14,164 +14,106 @@
 
 <body>
 
-  <!-- HEADER -->
-  <header class="app-header">
-    <div class="header-left">
-      <img src="./assets/logo.png" class="logo" />
+<header class="app-header">
+  <div class="header-left">
+    <img src="./assets/logo.png" class="logo" />
+  </div>
+  <h1 class="app-title">Demand Planning Engine</h1>
+  <div class="header-right">
+    <button class="btn export-btn">Export</button>
+  </div>
+</header>
+
+<section class="action-row">
+  <div class="progress-section">
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
     </div>
-
-    <h1 class="app-title">Demand Planning Engine</h1>
-
-    <div class="header-right">
-      <button class="btn export-btn">Export</button>
+    <div class="progress-meta">
+      <span class="progress-text" id="progressText">0%</span>
+      <span class="sheet-info" id="sheetInfo">
+        Sales: 0 | Stock: 0 | Style Status: 0 | Sale Days: 0 |
+        Size Count: 0 | Production: 0 | Meter Calc: 0 |
+        Location: 0 | X Mark Up: 0
+      </span>
     </div>
-  </header>
+  </div>
+  <button class="btn refresh-btn" id="refreshBtn">Refresh</button>
+</section>
 
+<section class="filter-row">
+  <div class="filters-left">
+    <select class="filter-select"><option>Month ▼</option></select>
+    <select class="filter-select"><option>FC ▼</option></select>
+    <select class="filter-select"><option>Category ▼</option></select>
+    <select class="filter-select"><option>Remark ▼</option></select>
+    <select class="filter-select"><option>SC Band ▼</option></select>
+  </div>
+  <div class="filters-right search-wrapper">
+    <input type="text" placeholder="Search..." class="search-input" id="searchInput" />
+    <span class="search-clear" id="clearSearch">✕</span>
+  </div>
+</section>
 
-  <!-- ACTION ROW -->
-  <section class="action-row">
+<section class="summary-grid">
+  <div class="summary-card"></div>
+  <div class="summary-card"></div>
+  <div class="summary-card"></div>
+  <div class="summary-card"></div>
+  <div class="summary-card"></div>
+  <div class="summary-card"></div>
+</section>
 
-    <div class="progress-section">
+<section class="report-tabs">
+  <button class="tab active" data-tab="demand">Demand</button>
+  <button class="tab" data-tab="overstock">Overstock</button>
+  <button class="tab" data-tab="sizecurve">Size Curve</button>
+  <button class="tab" data-tab="broken">Broken</button>
+  <button class="tab" data-tab="hero">Hero</button>
+  <button class="tab" data-tab="dw">DW</button>
+</section>
 
-      <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
+<section class="report-container">
 
-      <div class="progress-meta">
-        <span class="progress-text" id="progressText">0%</span>
-        <span class="sheet-info" id="sheetInfo">
-          Sales: 0 | Stock: 0 | Style Status: 0 | Sale Days: 0 |
-          Size Count: 0 | Production: 0 | Meter Calc: 0 |
-          Location: 0 | X Mark Up: 0
-        </span>
-      </div>
+  <!-- DEMAND SECTION -->
+  <div id="demandSection">
 
-    </div>
-
-    <button class="btn refresh-btn" id="refreshBtn">Refresh</button>
-
-  </section>
-
-
-  <!-- FILTER ROW -->
-  <section class="filter-row">
-
-    <div class="filters-left">
-      <select class="filter-select"><option>Month ▼</option></select>
-      <select class="filter-select"><option>FC ▼</option></select>
-      <select class="filter-select"><option>Category ▼</option></select>
-      <select class="filter-select"><option>Remark ▼</option></select>
-      <select class="filter-select"><option>SC Band ▼</option></select>
-    </div>
-
-    <div class="filters-right search-wrapper">
-      <input type="text" placeholder="Search..." class="search-input" id="searchInput" />
-      <span class="search-clear" id="clearSearch">✕</span>
-    </div>
-
-  </section>
-
-
-  <!-- SUMMARY GRID -->
-  <section class="summary-grid">
-    <div class="summary-card">Sale Details</div>
-    <div class="summary-card">Current FC Stock</div>
-
-    <div class="summary-card">SC Band Summary</div>
-    <div class="summary-card">Company Remark-wise Sale</div>
-    
-    <div class="summary-card">Size-wise Analysis</div>    
-    <div class="summary-card">Category-wise Sale</div>
-    
-  </section>
-
-
-  <!-- REPORT TABS -->
-  <section class="report-tabs">
-    <button class="tab active">Demand</button>
-    <button class="tab">Overstock</button>
-    <button class="tab">Size Curve</button>
-    <button class="tab">Broken</button>
-    <button class="tab">Hero</button>
-    <button class="tab">DW</button>
-  </section>
-
-
-  <!-- REPORT SECTION -->
-  <section class="report-container">
-
-    <!-- BUY BUCKET CARD -->
     <div class="report-card">
       <div class="card-header">
         <h3>Buy Bucket Summary</h3>
       </div>
       <div class="card-body">
-        <table class="summary-table" id="buyBucketTable">
-          <thead>
-            <tr>
-              <th>Buy Bucket</th>
-              <th>Total Pendancy</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Critical</td>
-              <td>0</td>
-            </tr>
-          </tbody>
-        </table>
+        <table class="summary-table" id="buyBucketTable"></table>
       </div>
     </div>
 
-    <!-- DEMAND REPORT CARD -->
     <div class="report-card">
       <div class="card-header">
         <h3>Demand Report</h3>
       </div>
       <div class="card-body table-wrapper">
-        <table class="report-table" id="demandTable">
-          <thead>
-            <tr>
-              <th>Style / SKU</th>
-              <th>Sales</th>
-              <th>Stock</th>
-              <th>DRR</th>
-              <th>SC</th>
-              <th>Demand</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Sample SKU</td>
-              <td>0</td>
-              <td>0</td>
-              <td>0</td>
-              <td>0</td>
-              <td>0</td>
-            </tr>
-          </tbody>
-        </table>
+        <table class="report-table" id="demandTable"></table>
       </div>
     </div>
-    
-<!-- OVERSTOCK REPORT CARD -->
-<div class="report-card">
-  <div class="card-header">
-    <h3>Overstock Report</h3>
-  </div>
-  <div class="card-body table-wrapper">
-    <table class="report-table" id="overstockTable"></table>
-  </div>
-</div>
 
-  </section>
+  </div>
 
-  <script src="./js/ui-basic.js"></script>
+  <!-- OVERSTOCK SECTION -->
+  <div id="overstockSection" style="display:none;">
+    <div class="report-card">
+      <div class="card-header">
+        <h3>Overstock Report</h3>
+      </div>
+      <div class="card-body table-wrapper">
+        <table class="report-table" id="overstockTable"></table>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script src="./js/ui-basic.js"></script>
 <script type="module" src="./js/app/bootstrap.js"></script>
 
 </body>
 </html>
-
-
-
-

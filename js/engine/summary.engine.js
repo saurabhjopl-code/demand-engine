@@ -1,171 +1,198 @@
 import { computedStore } from "../store/computed.store.js";
+import { dataStore } from "../store/data.store.js";
 
-export function renderSummaries() {
+/* ======================================================
+   MASTER SUMMARY BUILDER (THIS MUST MATCH IMPORT NAME)
+====================================================== */
 
-  const cards = document.querySelectorAll(".summary-card");
-  if (!cards || cards.length < 3) return;
+export function buildSummaries() {
 
-  renderSaleDetails(cards[0]);
-  renderStockOverview(cards[1]);
-  renderSCBand(cards[2]);
+  buildMonthWiseSaleSummary();
+  buildFCWiseStockSummary();
+  buildNumericSCBandSummary();
 }
 
 /* ==========================================
-   1️⃣ SALE DETAILS (MONTH WISE)
+   1️⃣ MONTH-WISE SALE SUMMARY
 ========================================== */
 
-function renderSaleDetails(card) {
+function buildMonthWiseSaleSummary() {
 
-  const data = computedStore.summaries.saleDetails;
-  if (!data) return;
+  const salesData = dataStore.get("Sales");
+  const saleDaysData = dataStore.get("Sale Days");
 
-  const rowsSorted = [...data.rows].sort((a, b) =>
-    a.month.localeCompare(b.month)
-  );
+  const monthMap = {};
+  let grandUnits = 0;
+  let grandDays = 0;
 
-  let rowsHTML = "";
+  salesData.forEach(row => {
 
-  rowsSorted.forEach(row => {
-    rowsHTML += `
-      <tr>
-        <td>${row.month}</td>
-        <td>${format(row.totalUnits)}</td>
-        <td>${format(row.drr)}</td>
-      </tr>
-    `;
+    const month = row["Month"];
+    const units = Number(row["Units"] || 0);
+
+    if (!monthMap[month]) {
+      monthMap[month] = {
+        month,
+        totalUnits: 0,
+        days: 0
+      };
+    }
+
+    monthMap[month].totalUnits += units;
   });
 
-  rowsHTML += `
-    <tr class="grand-row">
-      <td><strong>Grand Total</strong></td>
-      <td><strong>${format(data.grandTotal.totalUnits)}</strong></td>
-      <td><strong>${format(data.grandTotal.drr)}</strong></td>
-    </tr>
-  `;
+  saleDaysData.forEach(row => {
 
-  card.innerHTML = `
-    <h3>Sale Details</h3>
-    <table class="mini-summary-table">
-      <thead>
-        <tr>
-          <th>Month</th>
-          <th>Total Units Sold</th>
-          <th>DRR</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rowsHTML}
-      </tbody>
-    </table>
-  `;
-}
+    const month = row["Month"];
+    const days = Number(row["Days"] || 0);
 
-/* ==========================================
-   2️⃣ CURRENT FC STOCK
-========================================== */
-
-function renderStockOverview(card) {
-
-  const data = computedStore.summaries.stockOverview;
-  if (!data) return;
-
-  const rowsSorted = [...data.rows].sort((a, b) =>
-    b.totalStock - a.totalStock
-  );
-
-  let rowsHTML = "";
-
-  rowsSorted.forEach(row => {
-    rowsHTML += `
-      <tr>
-        <td>${row.fc}</td>
-        <td>${format(row.totalStock)}</td>
-        <td>${format(row.totalUnits)}</td>
-        <td>${format(row.drr)}</td>
-        <td>${format(row.sc)}</td>
-      </tr>
-    `;
+    if (monthMap[month]) {
+      monthMap[month].days = days;
+    }
   });
 
-  rowsHTML += `
-    <tr class="grand-row">
-      <td><strong>Grand Total</strong></td>
-      <td><strong>${format(data.grandTotal.totalStock)}</strong></td>
-      <td><strong>${format(data.grandTotal.totalUnits)}</strong></td>
-      <td><strong>${format(data.grandTotal.drr)}</strong></td>
-      <td><strong>${format(data.grandTotal.sc)}</strong></td>
-    </tr>
-  `;
+  Object.values(monthMap).forEach(obj => {
 
-  card.innerHTML = `
-    <h3>Current FC Stock</h3>
-    <table class="mini-summary-table">
-      <thead>
-        <tr>
-          <th>FC</th>
-          <th>Total Stock</th>
-          <th>Total Units Sold</th>
-          <th>DRR</th>
-          <th>SC</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rowsHTML}
-      </tbody>
-    </table>
-  `;
-}
+    obj.drr = obj.days > 0
+      ? Number((obj.totalUnits / obj.days).toFixed(2))
+      : 0;
 
-/* ==========================================
-   3️⃣ SC BAND SUMMARY (NUMERIC)
-========================================== */
-
-function renderSCBand(card) {
-
-  const rows = computedStore.summaries.scBandSummary;
-  if (!rows) return;
-
-  const bandOrder = ["0–30", "30–60", "60–120", "120+"];
-
-  let rowsHTML = "";
-
-  bandOrder.forEach(band => {
-
-    const row = rows.find(r => r.band === band);
-    if (!row) return;
-
-    rowsHTML += `
-      <tr>
-        <td>${row.band}</td>
-        <td>${row.styleCount}</td>
-        <td>${format(row.totalUnits)}</td>
-        <td>${format(row.totalStock)}</td>
-      </tr>
-    `;
+    grandUnits += obj.totalUnits;
+    grandDays += obj.days;
   });
 
-  card.innerHTML = `
-    <h3>SC Band Summary</h3>
-    <table class="mini-summary-table">
-      <thead>
-        <tr>
-          <th>SC Band</th>
-          <th># of Styles</th>
-          <th>Total Units Sold</th>
-          <th>Total Stock</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rowsHTML}
-      </tbody>
-    </table>
-  `;
+  const grandDRR = grandDays > 0
+    ? Number((grandUnits / grandDays).toFixed(2))
+    : 0;
+
+  computedStore.summaries.saleDetails = {
+    rows: Object.values(monthMap),
+    grandTotal: {
+      totalUnits: grandUnits,
+      drr: grandDRR
+    }
+  };
 }
 
 /* ==========================================
-   HELPER
+   2️⃣ FC-WISE STOCK SUMMARY
 ========================================== */
 
-function format(value) {
-  return Number(value || 0).toLocaleString("en-IN");
+function buildFCWiseStockSummary() {
+
+  const salesData = dataStore.get("Sales");
+  const stockData = dataStore.get("Stock");
+  const totalDays = computedStore.totalDays;
+
+  const fcMap = {};
+
+  salesData.forEach(row => {
+
+    const fc = row["FC"];
+    const units = Number(row["Units"] || 0);
+
+    if (!fcMap[fc]) {
+      fcMap[fc] = {
+        fc,
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    fcMap[fc].totalUnits += units;
+  });
+
+  stockData.forEach(row => {
+
+    const fc = row["FC"];
+    const units = Number(row["Units"] || 0);
+
+    if (!fcMap[fc]) {
+      fcMap[fc] = {
+        fc,
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    fcMap[fc].totalStock += units;
+  });
+
+  let grandUnits = 0;
+  let grandStock = 0;
+
+  Object.values(fcMap).forEach(obj => {
+
+    obj.drr = totalDays > 0
+      ? Number((obj.totalUnits / totalDays).toFixed(2))
+      : 0;
+
+    obj.sc = obj.drr > 0
+      ? Math.round(obj.totalStock / obj.drr)
+      : 0;
+
+    grandUnits += obj.totalUnits;
+    grandStock += obj.totalStock;
+  });
+
+  const grandDRR = totalDays > 0
+    ? Number((grandUnits / totalDays).toFixed(2))
+    : 0;
+
+  const grandSC = grandDRR > 0
+    ? Math.round(grandStock / grandDRR)
+    : 0;
+
+  computedStore.summaries.stockOverview = {
+    rows: Object.values(fcMap),
+    grandTotal: {
+      totalUnits: grandUnits,
+      totalStock: grandStock,
+      drr: grandDRR,
+      sc: grandSC
+    }
+  };
+}
+
+/* ==========================================
+   3️⃣ NUMERIC SC BAND SUMMARY (BY STYLE)
+========================================== */
+
+function buildNumericSCBandSummary() {
+
+  const bucketMap = {
+    "0–30": { styles: new Set(), units: 0, stock: 0 },
+    "30–60": { styles: new Set(), units: 0, stock: 0 },
+    "60–120": { styles: new Set(), units: 0, stock: 0 },
+    "120+": { styles: new Set(), units: 0, stock: 0 }
+  };
+
+  for (const sku in computedStore.skuSC) {
+
+    const sc = computedStore.skuSC[sku].sc;
+    const style = computedStore.skuSales[sku]?.styleID;
+    const units = computedStore.skuSales[sku]?.totalUnits || 0;
+    const stock = computedStore.skuStock[sku]?.totalStock || 0;
+
+    let bucket = "0–30";
+
+    if (sc >= 120) bucket = "120+";
+    else if (sc >= 60) bucket = "60–120";
+    else if (sc >= 30) bucket = "30–60";
+    else bucket = "0–30";
+
+    if (style) bucketMap[bucket].styles.add(style);
+
+    bucketMap[bucket].units += units;
+    bucketMap[bucket].stock += stock;
+  }
+
+  const rows = Object.keys(bucketMap).map(bucket => ({
+    band: bucket,
+    styleCount: bucketMap[bucket].styles.size,
+    totalUnits: bucketMap[bucket].units,
+    totalStock: bucketMap[bucket].stock
+  }));
+
+  computedStore.summaries.scBandSummary = rows;
 }

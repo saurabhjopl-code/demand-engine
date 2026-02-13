@@ -1,101 +1,119 @@
 import { computedStore } from "../store/computed.store.js";
+import { dataStore } from "../store/data.store.js";
 
 export function buildSummaries() {
 
-  buildSaleDetailsSummary();
-  buildStockOverviewSummary();
+  buildMonthWiseSaleSummary();
+  buildFCWiseStockSummary();
   buildSCBandSummary();
 }
 
 /* ======================================
-   1️⃣ SALE DETAILS SUMMARY
+   1️⃣ MONTH-WISE SALE DETAILS
 ====================================== */
 
-function buildSaleDetailsSummary() {
+function buildMonthWiseSaleSummary() {
 
-  let totalUnits = 0;
+  const salesData = dataStore.get("Sales");
+  const saleDaysData = dataStore.get("Sale Days");
 
-  for (const sku in computedStore.skuSales) {
-    totalUnits += computedStore.skuSales[sku].totalUnits;
-  }
+  const monthMap = {};
 
-  const totalDays = computedStore.totalDays;
+  salesData.forEach(row => {
 
-  const overallDRR =
-    totalDays > 0 ? Number((totalUnits / totalDays).toFixed(4)) : 0;
+    const month = row["Month"];
+    const units = Number(row["Units"] || 0);
 
-  computedStore.summaries.saleDetails = {
-    totalUnitsSold: totalUnits,
-    totalDays: totalDays,
-    overallDRR: overallDRR
-  };
+    if (!monthMap[month]) {
+      monthMap[month] = {
+        month: month,
+        totalUnits: 0,
+        days: 0
+      };
+    }
+
+    monthMap[month].totalUnits += units;
+  });
+
+  // Map days
+  saleDaysData.forEach(row => {
+    const month = row["Month"];
+    const days = Number(row["Days"] || 0);
+
+    if (monthMap[month]) {
+      monthMap[month].days = days;
+    }
+  });
+
+  // Calculate DRR per month
+  Object.keys(monthMap).forEach(month => {
+    const obj = monthMap[month];
+    obj.drr = obj.days > 0
+      ? Number((obj.totalUnits / obj.days).toFixed(2))
+      : 0;
+  });
+
+  computedStore.summaries.saleDetails = monthMap;
 }
 
 /* ======================================
-   2️⃣ STOCK OVERVIEW SUMMARY
+   2️⃣ FC-WISE STOCK SUMMARY
 ====================================== */
 
-function buildStockOverviewSummary() {
+function buildFCWiseStockSummary() {
 
-  let totalStock = 0;
-  let totalUnits = 0;
+  const stockData = dataStore.get("Stock");
 
-  for (const sku in computedStore.skuStock) {
-    totalStock += computedStore.skuStock[sku].totalStock;
-  }
+  const fcMap = {};
 
-  for (const sku in computedStore.skuSales) {
-    totalUnits += computedStore.skuSales[sku].totalUnits;
-  }
+  stockData.forEach(row => {
 
-  const totalDays = computedStore.totalDays;
+    const fc = row["FC"];
+    const units = Number(row["Units"] || 0);
 
-  const overallDRR =
-    totalDays > 0 ? totalUnits / totalDays : 0;
+    if (!fcMap[fc]) {
+      fcMap[fc] = {
+        fc: fc,
+        totalStock: 0
+      };
+    }
 
-  const overallSC =
-    overallDRR > 0 ? Number((totalStock / overallDRR).toFixed(2)) : 0;
+    fcMap[fc].totalStock += units;
+  });
 
-  computedStore.summaries.stockOverview = {
-    totalStock: totalStock,
-    totalUnitsSold: totalUnits,
-    overallDRR: Number(overallDRR.toFixed(4)),
-    overallSC: overallSC
-  };
+  computedStore.summaries.stockOverview = fcMap;
 }
 
 /* ======================================
-   3️⃣ SC BAND SUMMARY
+   3️⃣ SC BAND SUMMARY (WITH RANGE)
 ====================================== */
 
 function buildSCBandSummary() {
 
   const bandMap = {};
 
+  const bandRanges = {
+    "Critical": "0–30",
+    "RISK": "30–45",
+    "Healthy": "45–60",
+    "SAFE": "60–90",
+    "WATCH": "90–120",
+    "Overstock": "120+"
+  };
+
   for (const sku in computedStore.skuSCBand) {
 
     const band = computedStore.skuSCBand[sku].band;
-    const salesObj = computedStore.skuSales[sku];
-    const stockObj = computedStore.skuStock[sku];
 
     if (!bandMap[band]) {
       bandMap[band] = {
         band: band,
-        skuCount: 0,
-        totalUnitsSold: 0,
-        totalStock: 0
+        range: bandRanges[band],
+        skuCount: 0
       };
     }
 
     bandMap[band].skuCount += 1;
-
-    if (salesObj) {
-      bandMap[band].totalUnitsSold += salesObj.totalUnits;
-    }
-
-    if (stockObj) {
-      bandMap[band].totalStock += stockObj.totalStock;
-    }
   }
 
   computedStore.summaries.scBandSummary = bandMap;

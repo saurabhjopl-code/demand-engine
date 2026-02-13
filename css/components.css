@@ -111,3 +111,21 @@
   color: white;
   box-shadow: 0 3px 8px rgba(37,99,235,0.3);
 }
+
+.mini-summary-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 13px;
+}
+
+.mini-summary-table th {
+  font-weight: 600;
+  padding: 6px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.mini-summary-table td {
+  padding: 6px;
+}

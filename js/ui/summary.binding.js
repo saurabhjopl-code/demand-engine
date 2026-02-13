@@ -8,7 +8,7 @@ export function renderSummaries() {
   renderSaleDetails(cards[0]);
   renderStockOverview(cards[1]);
   renderSCBand(cards[2]);
-  renderSizeWise(cards[3]); // ✅ SIZE-WISE
+  renderSizeWise(cards[3]);
 }
 
 /* ==========================================
@@ -150,29 +150,82 @@ function renderSCBand(card) {
 }
 
 /* ==========================================
-   4️⃣ SIZE-WISE ANALYSIS
+   4️⃣ SIZE-WISE ANALYSIS (ROWSPAN FORMAT)
 ========================================== */
 
 function renderSizeWise(card) {
 
   const rows = computedStore.summaries.sizeWise;
-  if (!rows) return;
+  if (!rows || rows.length === 0) return;
 
-  let rowsHTML = "";
+  // Group by Category
+  const categoryMap = {};
 
   rows.forEach(row => {
-    rowsHTML += `
-      <tr>
-        <td>${row.size}</td>
-        <td>${row.category}</td>
-        <td>${format(row.unitsSold)}</td>
-        <td>${format(row.totalUnits)}</td>
-        <td>${row.sizeShare}%</td>
-        <td>${format(row.unitsInStock)}</td>
-        <td>${format(row.totalStock)}</td>
-      </tr>
-    `;
+    if (!categoryMap[row.category]) {
+      categoryMap[row.category] = [];
+    }
+    categoryMap[row.category].push(row);
   });
+
+  let rowsHTML = "";
+  let grandUnits = 0;
+  let grandStock = 0;
+
+  Object.keys(categoryMap).forEach(category => {
+
+    const catRows = categoryMap[category];
+
+    const totalUnits = catRows[0].totalUnits;
+    const totalStock = catRows[0].totalStock;
+
+    const categoryShare = grandTotalUnits(rows) > 0
+      ? ((totalUnits / grandTotalUnits(rows)) * 100).toFixed(2)
+      : 0;
+
+    grandUnits += totalUnits;
+    grandStock += totalStock;
+
+    catRows.forEach((row, index) => {
+
+      rowsHTML += `<tr>`;
+
+      rowsHTML += `<td>${row.size}</td>`;
+
+      if (index === 0) {
+        rowsHTML += `<td rowspan="${catRows.length}">${category}</td>`;
+      }
+
+      rowsHTML += `<td>${format(row.unitsSold)}</td>`;
+
+      if (index === 0) {
+        rowsHTML += `<td rowspan="${catRows.length}">${format(totalUnits)}</td>`;
+      }
+
+      rowsHTML += `<td>${row.sizeShare}%</td>`;
+
+      if (index === 0) {
+        rowsHTML += `<td rowspan="${catRows.length}">${categoryShare}%</td>`;
+      }
+
+      rowsHTML += `<td>${format(row.unitsInStock)}</td>`;
+
+      if (index === 0) {
+        rowsHTML += `<td rowspan="${catRows.length}">${format(totalStock)}</td>`;
+      }
+
+      rowsHTML += `</tr>`;
+    });
+  });
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td colspan="2"><strong>Grand Total</strong></td>
+      <td><strong>${format(grandUnits)}</strong></td>
+      <td colspan="3"></td>
+      <td><strong>${format(grandStock)}</strong></td>
+    </tr>
+  `;
 
   card.innerHTML = `
     <h3>Size-wise Analysis</h3>
@@ -184,6 +237,7 @@ function renderSizeWise(card) {
           <th>Units Sold</th>
           <th>Total Units Sold</th>
           <th>Size % Share</th>
+          <th>Category % Share</th>
           <th>Units in Stock</th>
           <th>Total Stock</th>
         </tr>
@@ -196,8 +250,12 @@ function renderSizeWise(card) {
 }
 
 /* ==========================================
-   FORMATTER
+   HELPERS
 ========================================== */
+
+function grandTotalUnits(rows) {
+  return rows.reduce((sum, r) => sum + r.unitsSold, 0);
+}
 
 function format(value) {
   return Number(value || 0).toLocaleString("en-IN");

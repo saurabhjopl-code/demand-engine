@@ -16,43 +16,66 @@
 
   <!-- HEADER -->
   <header class="app-header">
-    <div class="header-left">
-      <img src="./assets/logo.png" class="logo" />
-      <h1>Demand Planning Engine</h1>
-    </div>
+    <img src="./assets/logo.png" class="logo" />
+    <h1 class="app-title">Demand Planning Engine</h1>
     <button class="btn export-btn">Export</button>
   </header>
 
 
   <!-- ACTION ROW -->
   <section class="action-row">
+
+    <div class="progress-wrapper">
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+      <span class="progress-text">0%</span>
+
+      <!-- Sheet Row Info -->
+      <div class="sheet-info">
+        <div>Sales: 0 rows</div>
+        <div>Stock: 0 rows</div>
+        <div>Style Status: 0 rows</div>
+        <div>Sale Days: 0 rows</div>
+        <div>Size Count: 0 rows</div>
+        <div>Production: 0 rows</div>
+        <div>Meter Calc: 0 rows</div>
+        <div>Location: 0 rows</div>
+        <div>X Mark Up: 0 rows</div>
+      </div>
+    </div>
+
     <button class="btn refresh-btn">Refresh</button>
 
-    <div class="progress-container">
-      <div class="progress-bar"></div>
-      <span class="progress-text">0%</span>
-    </div>
   </section>
 
 
   <!-- FILTER ROW -->
   <section class="filter-row">
-    <input type="text" placeholder="Search..." class="search-input" />
 
-    <select class="filter-select"><option>Month ▼</option></select>
-    <select class="filter-select"><option>FC ▼</option></select>
-    <select class="filter-select"><option>Category ▼</option></select>
-    <select class="filter-select"><option>Remark ▼</option></select>
-    <select class="filter-select"><option>SC Band ▼</option></select>
+    <div class="filters-left">
+      <select class="filter-select"><option>Month ▼</option></select>
+      <select class="filter-select"><option>FC ▼</option></select>
+      <select class="filter-select"><option>Category ▼</option></select>
+      <select class="filter-select"><option>Remark ▼</option></select>
+      <select class="filter-select"><option>SC Band ▼</option></select>
+    </div>
+
+    <div class="filters-right">
+      <input type="text" placeholder="Search..." class="search-input" />
+    </div>
+
   </section>
 
 
-  <!-- SUMMARY GRID -->
+  <!-- SUMMARY GRID (3x2) -->
   <section class="summary-grid">
     <div class="summary-card">Sale Details</div>
     <div class="summary-card">Current FC Stock</div>
+
     <div class="summary-card">SC Band Summary</div>
     <div class="summary-card">Size-wise Analysis</div>
+
     <div class="summary-card">Company Remark-wise Sale</div>
     <div class="summary-card">Category-wise Sale</div>
   </section>
@@ -72,7 +95,7 @@
   <!-- REPORT SECTION -->
   <section class="report-container">
 
-    <!-- Demand Tab Extra Summary -->
+    <!-- Buy Bucket Summary (Demand Tab Only) -->
     <div class="buybucket-summary">
       <h3>Buy Bucket Summary</h3>
       <table class="summary-table">

@@ -1,0 +1,71 @@
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.export-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.refresh-btn {
+  background: #f3f4f6;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  min-width: 200px;
+}
+
+.filter-select {
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.summary-card {
+  background: var(--white);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-weight: 500;
+}
+
+.tab {
+  padding: 8px 16px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.progress-container {
+  position: relative;
+  width: 250px;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin-left: 10px;
+  font-size: 12px;
+}

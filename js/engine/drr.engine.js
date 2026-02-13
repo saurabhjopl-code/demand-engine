@@ -1,29 +1,42 @@
-import { dataStore } from "../store/data.store.js";
 import { computedStore } from "../store/computed.store.js";
-import { consolidateSales } from "./sales.engine.js";
-import { calculateTotalDays } from "./days.engine.js";
-import { calculateDRR } from "./drr.engine.js";
 
-export function initializeEngine() {
+export function calculateDRR() {
 
-  // Clear previous computed data
-  computedStore.clear();
+  const totalDays = computedStore.totalDays;
 
-  const salesData = dataStore.get("Sales");
-  const saleDaysData = dataStore.get("Sale Days");
+  if (!totalDays || totalDays <= 0) {
+    computedStore.skuDRR = {};
+    computedStore.styleDRR = {};
+    return;
+  }
 
-  // STEP 1 — Consolidation
-  consolidateSales(salesData);
+  const skuDRRMap = {};
+  const styleDRRMap = {};
 
-  // STEP 2 — Total Days
-  calculateTotalDays(saleDaysData);
+  // SKU Level DRR
+  for (const sku in computedStore.skuSales) {
 
-  // STEP 3 — DRR
-  calculateDRR();
+    const totalUnits = computedStore.skuSales[sku].totalUnits;
+    const drr = totalUnits / totalDays;
 
-  // Debug Logs (Safe)
-  console.log("Engine Initialized");
-  console.log("Total Days:", computedStore.totalDays);
-  console.log("SKU Count:", Object.keys(computedStore.skuSales).length);
-  console.log("Style Count:", Object.keys(computedStore.styleSales).length);
+    skuDRRMap[sku] = {
+      uniwareSKU: sku,
+      drr: Number(drr.toFixed(4))
+    };
+  }
+
+  // Style Level DRR
+  for (const style in computedStore.styleSales) {
+
+    const totalUnits = computedStore.styleSales[style].totalUnits;
+    const drr = totalUnits / totalDays;
+
+    styleDRRMap[style] = {
+      styleID: style,
+      drr: Number(drr.toFixed(4))
+    };
+  }
+
+  computedStore.skuDRR = skuDRRMap;
+  computedStore.styleDRR = styleDRRMap;
 }

@@ -1,10 +1,36 @@
+/* CARD WRAPPER */
+.report-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+
+/* CARD HEADER */
+.card-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border);
+  background: #f9fafb;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* CARD BODY */
+.card-body {
+  padding: 20px;
+}
+
+/* TABLES */
 .report-table,
 .summary-table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--white);
-  border-radius: var(--radius);
-  overflow: hidden;
   text-align: center;
 }
 
@@ -21,4 +47,5 @@
   position: sticky;
   top: 0;
   background: var(--white);
+  z-index: 2;
 }

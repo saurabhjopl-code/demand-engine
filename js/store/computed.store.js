@@ -12,6 +12,8 @@ export const computedStore = {
   skuStock: {},
   skuSC: {},
 
+  skuSCBand: {},
+
   clear() {
     this.skuSales = {};
     this.styleSales = {};
@@ -21,6 +23,7 @@ export const computedStore = {
     this.skuDemand = {};
     this.skuStock = {};
     this.skuSC = {};
+    this.skuSCBand = {};
   }
 
 };

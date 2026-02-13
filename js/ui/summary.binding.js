@@ -5,31 +5,39 @@ export function renderSummaries() {
   const cards = document.querySelectorAll(".summary-card");
   if (!cards || cards.length < 3) return;
 
-  renderMonthWiseSale(cards[0]);
-  renderFCWiseStock(cards[1]);
+  renderSaleDetails(cards[0]);
+  renderStockOverview(cards[1]);
   renderSCBand(cards[2]);
 }
 
-/* ======================================
-   1️⃣ MONTH-WISE SALE
-====================================== */
+/* ==========================================
+   1️⃣ SALE DETAILS
+========================================== */
 
-function renderMonthWiseSale(card) {
+function renderSaleDetails(card) {
 
   const data = computedStore.summaries.saleDetails;
+  if (!data || !data.rows) return;
 
-  let rows = "";
+  let rowsHTML = "";
 
-  Object.values(data).forEach(obj => {
-
-    rows += `
+  data.rows.forEach(row => {
+    rowsHTML += `
       <tr>
-        <td>${obj.month}</td>
-        <td>${format(obj.totalUnits)}</td>
-        <td>${obj.drr}</td>
+        <td>${row.month}</td>
+        <td>${format(row.totalUnits)}</td>
+        <td>${format(row.drr)}</td>
       </tr>
     `;
   });
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td><strong>Grand Total</strong></td>
+      <td><strong>${format(data.grandTotal.totalUnits)}</strong></td>
+      <td><strong>${format(data.grandTotal.drr)}</strong></td>
+    </tr>
+  `;
 
   card.innerHTML = `
     <h3>Sale Details</h3>
@@ -37,36 +45,49 @@ function renderMonthWiseSale(card) {
       <thead>
         <tr>
           <th>Month</th>
-          <th>Total Units</th>
+          <th>Total Units Sold</th>
           <th>DRR</th>
         </tr>
       </thead>
       <tbody>
-        ${rows}
+        ${rowsHTML}
       </tbody>
     </table>
   `;
 }
 
-/* ======================================
-   2️⃣ FC-WISE STOCK
-====================================== */
+/* ==========================================
+   2️⃣ CURRENT FC STOCK
+========================================== */
 
-function renderFCWiseStock(card) {
+function renderStockOverview(card) {
 
   const data = computedStore.summaries.stockOverview;
+  if (!data || !data.rows) return;
 
-  let rows = "";
+  let rowsHTML = "";
 
-  Object.values(data).forEach(obj => {
-
-    rows += `
+  data.rows.forEach(row => {
+    rowsHTML += `
       <tr>
-        <td>${obj.fc}</td>
-        <td>${format(obj.totalStock)}</td>
+        <td>${row.fc}</td>
+        <td>${format(row.totalStock)}</td>
+        <td>${format(row.totalUnits)}</td>
+        <td>${format(row.drr)}</td>
+        <td>${format(row.sc)}</td>
       </tr>
     `;
   });
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td><strong>Grand Total</strong></td>
+      <td><strong>${format(data.grandTotal.totalStock)}</strong></td>
+      <td><strong>${format(data.grandTotal.totalUnits)}</strong></td>
+      <td><strong>${format(data.grandTotal.drr)}</strong></td>
+      <td><strong>${format(data.grandTotal.sc)}</strong></td>
+    </tr>
+  `;
 
   card.innerHTML = `
     <h3>Current FC Stock</h3>
@@ -75,32 +96,36 @@ function renderFCWiseStock(card) {
         <tr>
           <th>FC</th>
           <th>Total Stock</th>
+          <th>Total Units Sold</th>
+          <th>DRR</th>
+          <th>SC</th>
         </tr>
       </thead>
       <tbody>
-        ${rows}
+        ${rowsHTML}
       </tbody>
     </table>
   `;
 }
 
-/* ======================================
+/* ==========================================
    3️⃣ SC BAND SUMMARY
-====================================== */
+========================================== */
 
 function renderSCBand(card) {
 
-  const data = computedStore.summaries.scBandSummary;
+  const rows = computedStore.summaries.scBandSummary;
+  if (!rows) return;
 
-  let rows = "";
+  let rowsHTML = "";
 
-  Object.values(data).forEach(obj => {
-
-    rows += `
+  rows.forEach(row => {
+    rowsHTML += `
       <tr>
-        <td>${obj.band}</td>
-        <td>${obj.range}</td>
-        <td>${obj.skuCount}</td>
+        <td>${row.band}</td>
+        <td>${row.styleCount}</td>
+        <td>${format(row.totalUnits)}</td>
+        <td>${format(row.totalStock)}</td>
       </tr>
     `;
   });
@@ -110,17 +135,22 @@ function renderSCBand(card) {
     <table class="mini-summary-table">
       <thead>
         <tr>
-          <th>Band</th>
-          <th>Range</th>
-          <th># of SKUs</th>
+          <th>SC Band</th>
+          <th># of Styles</th>
+          <th>Total Units Sold</th>
+          <th>Total Stock</th>
         </tr>
       </thead>
       <tbody>
-        ${rows}
+        ${rowsHTML}
       </tbody>
     </table>
   `;
 }
+
+/* ==========================================
+   FORMATTER
+========================================== */
 
 function format(value) {
   return Number(value || 0).toLocaleString("en-IN");

@@ -12,6 +12,7 @@ export function buildSummaries() {
   buildNumericSCBandSummary();
   buildSizeWiseSummary();
   buildCompanyRemarkSummary(); 
+  buildCategorySummary();
 }
 
 /* ==========================================
@@ -331,3 +332,71 @@ function buildCompanyRemarkSummary() {
   computedStore.summaries.companyRemark = rows;
 }
 
+/* ==========================================
+   6️⃣ CATEGORY SUMMARY
+========================================== */
+
+function buildCategorySummary() {
+
+  const salesData = dataStore.get("Sales") || [];
+  const stockData = dataStore.get("Stock") || [];
+  const styleStatus = dataStore.get("Style Status") || [];
+  const totalDays = computedStore.totalDays || 0;
+
+  const styleCategoryMap = {};
+
+  styleStatus.forEach(row => {
+    styleCategoryMap[row["Style ID"]] = row["Category"] || "Unknown";
+  });
+
+  const categoryMap = {};
+
+  salesData.forEach(row => {
+
+    const style = row["Style ID"];
+    const units = Number(row["Units"] || 0);
+    const category = styleCategoryMap[style] || "Unknown";
+
+    if (!categoryMap[category]) {
+      categoryMap[category] = {
+        category,
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    categoryMap[category].totalUnits += units;
+  });
+
+  stockData.forEach(row => {
+
+    const style = row["Style ID"];
+    const units = Number(row["Units"] || 0);
+    const category = styleCategoryMap[style] || "Unknown";
+
+    if (!categoryMap[category]) {
+      categoryMap[category] = {
+        category,
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    categoryMap[category].totalStock += units;
+  });
+
+  const rows = Object.values(categoryMap);
+
+  rows.forEach(obj => {
+
+    obj.drr = totalDays > 0
+      ? Number((obj.totalUnits / totalDays).toFixed(2))
+      : 0;
+
+    obj.sc = obj.drr > 0
+      ? Math.round(obj.totalStock / obj.drr)
+      : 0;
+  });
+
+  computedStore.summaries.category = rows;
+}

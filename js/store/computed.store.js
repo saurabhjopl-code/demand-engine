@@ -7,12 +7,15 @@ export const computedStore = {
   skuDRR: {},
   styleDRR: {},
 
+  skuDemand: {},
+
   clear() {
     this.skuSales = {};
     this.styleSales = {};
     this.totalDays = 0;
     this.skuDRR = {};
     this.styleDRR = {};
+    this.skuDemand = {};
   }
 
 };

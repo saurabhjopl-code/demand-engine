@@ -9,6 +9,7 @@ import { calculateStockCover } from "./sc.engine.js";
 import { calculateSCBand } from "./scband.engine.js";
 import { consolidateProduction } from "./production.engine.js";
 import { calculateDirectDemand } from "./directdemand.engine.js";
+import { calculateBuyBucket } from "./buybucket.engine.js";
 
 export function initializeEngine() {
 
@@ -47,9 +48,12 @@ export function initializeEngine() {
   // STEP 9 — Direct Demand & Pendancy
   calculateDirectDemand();
 
+  // STEP 10 — Buy Bucket
+  calculateBuyBucket();
+
   // Debug
   console.log("Engine Initialized");
   console.log("Total Days:", computedStore.totalDays);
   console.log("SKU Count:", Object.keys(computedStore.skuSales).length);
-  console.log("Direct Demand Entries:", Object.keys(computedStore.skuDirectDemand).length);
+  console.log("Buy Bucket Entries:", Object.keys(computedStore.skuBuyBucket).length);
 }

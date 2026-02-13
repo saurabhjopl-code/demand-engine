@@ -6,6 +6,7 @@ import { calculateDRR } from "./drr.engine.js";
 import { calculateDemandCover } from "./demand.engine.js";
 import { consolidateStock } from "./stock.engine.js";
 import { calculateStockCover } from "./sc.engine.js";
+import { calculateSCBand } from "./scband.engine.js";
 
 export function initializeEngine() {
 
@@ -34,10 +35,12 @@ export function initializeEngine() {
   // STEP 6 — Stock Cover
   calculateStockCover();
 
+  // STEP 7 — SC Band Classification
+  calculateSCBand();
+
   // Debug Logs
   console.log("Engine Initialized");
   console.log("Total Days:", computedStore.totalDays);
   console.log("SKU Count:", Object.keys(computedStore.skuSales).length);
-  console.log("Stock Entries:", Object.keys(computedStore.skuStock).length);
-  console.log("SC Entries:", Object.keys(computedStore.skuSC).length);
+  console.log("SC Band Entries:", Object.keys(computedStore.skuSCBand).length);
 }

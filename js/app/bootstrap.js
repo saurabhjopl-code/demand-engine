@@ -4,6 +4,8 @@ import { validateHeaders } from "../data/validator.service.js";
 import { dataStore } from "../store/data.store.js";
 import { computedStore } from "../store/computed.store.js";
 
+import { buildCoreEngine } from "../engine/core.engine.js";
+
 import { buildSummaries } from "../engine/summary.engine.js";
 import { renderSummaries } from "../ui/summary.binding.js";
 
@@ -100,13 +102,18 @@ export async function loadSheets() {
 
   populateFilters(dataStore.raw);
 
+  /* 🔥 BUILD CORE FIRST */
+  buildCoreEngine();
+
+  /* THEN SUMMARIES */
   buildSummaries();
   renderSummaries();
 
+  /* THEN REPORTS */
   buildReports();
   renderReports();
 
-  console.log("Summaries & Reports Rendered");
+  console.log("Core, Summaries & Reports Rendered");
 }
 
 /* ================================

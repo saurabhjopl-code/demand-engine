@@ -16,33 +16,36 @@
 
   <!-- HEADER -->
   <header class="app-header">
-    <img src="./assets/logo.png" class="logo" />
+    <div class="header-left">
+      <img src="./assets/logo.png" class="logo" />
+    </div>
+
     <h1 class="app-title">Demand Planning Engine</h1>
-    <button class="btn export-btn">Export</button>
+
+    <div class="header-right">
+      <button class="btn export-btn">Export</button>
+    </div>
   </header>
 
 
   <!-- ACTION ROW -->
   <section class="action-row">
 
-    <div class="progress-wrapper">
+    <div class="progress-section">
+
       <div class="progress-container">
         <div class="progress-bar"></div>
       </div>
-      <span class="progress-text">0%</span>
 
-      <!-- Sheet Row Info -->
-      <div class="sheet-info">
-        <div>Sales: 0 rows</div>
-        <div>Stock: 0 rows</div>
-        <div>Style Status: 0 rows</div>
-        <div>Sale Days: 0 rows</div>
-        <div>Size Count: 0 rows</div>
-        <div>Production: 0 rows</div>
-        <div>Meter Calc: 0 rows</div>
-        <div>Location: 0 rows</div>
-        <div>X Mark Up: 0 rows</div>
+      <div class="progress-meta">
+        <span class="progress-text">0%</span>
+        <span class="sheet-info">
+          Sales: 0 | Stock: 0 | Style Status: 0 | Sale Days: 0 |
+          Size Count: 0 | Production: 0 | Meter Calc: 0 |
+          Location: 0 | X Mark Up: 0
+        </span>
       </div>
+
     </div>
 
     <button class="btn refresh-btn">Refresh</button>
@@ -68,7 +71,7 @@
   </section>
 
 
-  <!-- SUMMARY GRID (3x2) -->
+  <!-- SUMMARY GRID -->
   <section class="summary-grid">
     <div class="summary-card">Sale Details</div>
     <div class="summary-card">Current FC Stock</div>
@@ -95,7 +98,7 @@
   <!-- REPORT SECTION -->
   <section class="report-container">
 
-    <!-- Buy Bucket Summary (Demand Tab Only) -->
+    <!-- Buy Bucket Summary -->
     <div class="buybucket-summary">
       <h3>Buy Bucket Summary</h3>
       <table class="summary-table">
@@ -113,7 +116,6 @@
         </tbody>
       </table>
     </div>
-
 
     <!-- Main Report Table -->
     <div class="table-wrapper">

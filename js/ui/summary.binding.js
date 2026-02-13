@@ -3,7 +3,7 @@ import { computedStore } from "../store/computed.store.js";
 export function renderSummaries() {
 
   const cards = document.querySelectorAll(".summary-card");
-  if (!cards || cards.length < 4) return;
+  if (!cards || cards.length < 6) return;
 
   renderSaleDetails(cards[0]);
   renderStockOverview(cards[1]);
@@ -146,7 +146,7 @@ function renderSCBand(card) {
 }
 
 /* ==========================================
-   4️⃣ SIZE-WISE ANALYSIS (FINAL FORMAT)
+   4️⃣ SIZE-WISE ANALYSIS
 ========================================== */
 
 function renderSizeWise(card) {
@@ -154,7 +154,6 @@ function renderSizeWise(card) {
   const rows = computedStore.summaries.sizeWise;
   if (!rows || rows.length === 0) return;
 
-  // Group rows by category
   const categoryMap = {};
 
   rows.forEach(row => {
@@ -182,30 +181,25 @@ function renderSizeWise(card) {
     catRows.forEach((row, index) => {
 
       rowsHTML += `<tr>`;
-
       rowsHTML += `<td>${row.size}</td>`;
 
-      if (index === 0) {
+      if (index === 0)
         rowsHTML += `<td rowspan="${catRows.length}">${category}</td>`;
-      }
 
       rowsHTML += `<td>${format(row.unitsSold)}</td>`;
 
-      if (index === 0) {
+      if (index === 0)
         rowsHTML += `<td rowspan="${catRows.length}">${format(categoryUnits)}</td>`;
-      }
 
       rowsHTML += `<td>${row.sizeShare}%</td>`;
 
-      if (index === 0) {
+      if (index === 0)
         rowsHTML += `<td rowspan="${catRows.length}">${categoryShare}%</td>`;
-      }
 
       rowsHTML += `<td>${format(row.unitsInStock)}</td>`;
 
-      if (index === 0) {
+      if (index === 0)
         rowsHTML += `<td rowspan="${catRows.length}">${format(categoryStock)}</td>`;
-      }
 
       rowsHTML += `</tr>`;
     });
@@ -241,7 +235,7 @@ function renderSizeWise(card) {
 }
 
 /* ==========================================
-   COMPANY REMARK SUMMARY
+   5️⃣ COMPANY REMARK SUMMARY
 ========================================== */
 
 function renderCompanyRemark(card) {
@@ -249,22 +243,46 @@ function renderCompanyRemark(card) {
   const rows = computedStore.summaries.companyRemark;
   if (!rows) return;
 
+  let sorted = [...rows].sort((a,b) => b.totalUnits - a.totalUnits);
+
+  let grandUnits = 0;
+  let grandStock = 0;
+
   let rowsHTML = "";
 
-  rows
-    .sort((a,b) => b.totalUnits - a.totalUnits)
-    .forEach(row => {
+  sorted.forEach(row => {
 
-      rowsHTML += `
-        <tr>
-          <td>${row.remark}</td>
-          <td>${format(row.totalUnits)}</td>
-          <td>${format(row.drr)}</td>
-          <td>${format(row.totalStock)}</td>
-          <td>${format(row.sc)}</td>
-        </tr>
-      `;
-    });
+    grandUnits += row.totalUnits;
+    grandStock += row.totalStock;
+
+    rowsHTML += `
+      <tr>
+        <td>${row.remark}</td>
+        <td>${format(row.totalUnits)}</td>
+        <td>${format(row.drr)}</td>
+        <td>${format(row.totalStock)}</td>
+        <td>${format(row.sc)}</td>
+      </tr>
+    `;
+  });
+
+  const grandDRR = computedStore.totalDays > 0
+    ? (grandUnits / computedStore.totalDays).toFixed(2)
+    : 0;
+
+  const grandSC = grandDRR > 0
+    ? Math.round(grandStock / grandDRR)
+    : 0;
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td><strong>Grand Total</strong></td>
+      <td><strong>${format(grandUnits)}</strong></td>
+      <td><strong>${format(grandDRR)}</strong></td>
+      <td><strong>${format(grandStock)}</strong></td>
+      <td><strong>${format(grandSC)}</strong></td>
+    </tr>
+  `;
 
   card.innerHTML = `
     <h3>Company Remark-wise Sale</h3>
@@ -278,53 +296,3 @@ function renderCompanyRemark(card) {
           <th>SC</th>
         </tr>
       </thead>
-      <tbody>${rowsHTML}</tbody>
-    </table>
-  `;
-}
-function renderCategory(card) {
-
-  const rows = computedStore.summaries.category;
-  if (!rows) return;
-
-  let rowsHTML = "";
-
-  rows
-    .sort((a,b) => b.totalUnits - a.totalUnits)
-    .forEach(row => {
-
-      rowsHTML += `
-        <tr>
-          <td>${row.category}</td>
-          <td>${format(row.totalUnits)}</td>
-          <td>${format(row.drr)}</td>
-          <td>${format(row.totalStock)}</td>
-          <td>${format(row.sc)}</td>
-        </tr>
-      `;
-    });
-
-  card.innerHTML = `
-    <h3>Category-wise Sale</h3>
-    <table class="mini-summary-table">
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Total Units Sold</th>
-          <th>DRR</th>
-          <th>Total Stock</th>
-          <th>SC</th>
-        </tr>
-      </thead>
-      <tbody>${rowsHTML}</tbody>
-    </table>
-  `;
-}
-
-/* ==========================================
-   FORMATTER
-========================================== */
-
-function format(value) {
-  return Number(value || 0).toLocaleString("en-IN");
-}

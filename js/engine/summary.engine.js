@@ -2,7 +2,7 @@ import { computedStore } from "../store/computed.store.js";
 import { dataStore } from "../store/data.store.js";
 
 /* ======================================================
-   MASTER SUMMARY BUILDER (THIS MUST MATCH IMPORT NAME)
+   MASTER SUMMARY BUILDER
 ====================================================== */
 
 export function buildSummaries() {
@@ -18,8 +18,8 @@ export function buildSummaries() {
 
 function buildMonthWiseSaleSummary() {
 
-  const salesData = dataStore.get("Sales");
-  const saleDaysData = dataStore.get("Sale Days");
+  const salesData = dataStore.get("Sales") || [];
+  const saleDaysData = dataStore.get("Sale Days") || [];
 
   const monthMap = {};
   let grandUnits = 0;
@@ -80,9 +80,9 @@ function buildMonthWiseSaleSummary() {
 
 function buildFCWiseStockSummary() {
 
-  const salesData = dataStore.get("Sales");
-  const stockData = dataStore.get("Stock");
-  const totalDays = computedStore.totalDays;
+  const salesData = dataStore.get("Sales") || [];
+  const stockData = dataStore.get("Stock") || [];
+  const totalDays = computedStore.totalDays || 0;
 
   const fcMap = {};
 
@@ -167,9 +167,9 @@ function buildNumericSCBandSummary() {
     "120+": { styles: new Set(), units: 0, stock: 0 }
   };
 
-  for (const sku in computedStore.skuSC) {
+  for (const sku in computedStore.skuSC || {}) {
 
-    const sc = computedStore.skuSC[sku].sc;
+    const sc = computedStore.skuSC[sku]?.sc || 0;
     const style = computedStore.skuSales[sku]?.styleID;
     const units = computedStore.skuSales[sku]?.totalUnits || 0;
     const stock = computedStore.skuStock[sku]?.totalStock || 0;
@@ -179,7 +179,6 @@ function buildNumericSCBandSummary() {
     if (sc >= 120) bucket = "120+";
     else if (sc >= 60) bucket = "60–120";
     else if (sc >= 30) bucket = "30–60";
-    else bucket = "0–30";
 
     if (style) bucketMap[bucket].styles.add(style);
 

@@ -12,7 +12,7 @@ export function buildReports() {
 }
 
 /* ==========================================
-   DEMAND REPORT (90D DEFAULT)
+   DEMAND REPORT (45D / 60D / 90D)
 ========================================== */
 
 function buildDemandReport() {
@@ -22,7 +22,6 @@ function buildDemandReport() {
   const productionData = dataStore.get("Production") || [];
 
   const totalDays = computedStore.totalDays || 0;
-  const DEMAND_DAYS = 90;
 
   const skuMap = {};
 
@@ -95,13 +94,23 @@ function buildDemandReport() {
       ? Number((obj.totalStock / drr).toFixed(0))
       : 0;
 
-    const requiredStock = drr * DEMAND_DAYS;
+    /* ---------- REQUIRED STOCK ---------- */
 
-    let directDemand = Math.round(requiredStock - obj.totalStock);
-    if (directDemand < 0) directDemand = 0;
+    const req45 = Math.round(drr * 45);
+    const req60 = Math.round(drr * 60);
+    const req90 = Math.round(drr * 90);
 
-    let pendancy = directDemand - obj.inProduction;
-    if (pendancy < 0) pendancy = 0;
+    /* ---------- DIRECT DEMAND ---------- */
+
+    const direct45 = Math.max(0, req45 - obj.totalStock);
+    const direct60 = Math.max(0, req60 - obj.totalStock);
+    const direct90 = Math.max(0, req90 - obj.totalStock);
+
+    /* ---------- PENDANCY ---------- */
+
+    const pend45 = Math.max(0, direct45 - obj.inProduction);
+    const pend60 = Math.max(0, direct60 - obj.inProduction);
+    const pend90 = Math.max(0, direct90 - obj.inProduction);
 
     const buyBucket = getSCBucket(sc);
 
@@ -111,10 +120,21 @@ function buildDemandReport() {
       stock: obj.totalStock,
       drr,
       sc,
-      requiredStock: Math.round(requiredStock),
-      directDemand,
+
+      required45: req45,
+      required60: req60,
+      required90: req90,
+
+      direct45,
+      direct60,
+      direct90,
+
       inProduction: obj.inProduction,
-      pendancy,
+
+      pend45,
+      pend60,
+      pend90,
+
       buyBucket
     });
   });
@@ -126,7 +146,7 @@ function buildDemandReport() {
 }
 
 /* ==========================================
-   BUY BUCKET SUMMARY
+   BUY BUCKET SUMMARY (BASED ON 90D PENDANCY)
 ========================================== */
 
 function buildBuyBucketSummary() {
@@ -141,7 +161,7 @@ function buildBuyBucketSummary() {
       bucketMap[row.buyBucket] = 0;
     }
 
-    bucketMap[row.buyBucket] += row.pendancy;
+    bucketMap[row.buyBucket] += row.pend90; // using 90D as primary
   });
 
   const summary = Object.keys(bucketMap).map(bucket => ({

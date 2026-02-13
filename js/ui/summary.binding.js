@@ -1,9 +1,13 @@
 import { computedStore } from "../store/computed.store.js";
 
+/* ======================================================
+   MASTER RENDERER
+====================================================== */
+
 export function renderSummaries() {
 
   const cards = document.querySelectorAll(".summary-card");
-  if (!cards || cards.length === 0) return;
+  if (!cards || cards.length < 6) return;
 
   safeRender(() => renderSaleDetails(cards[0]));
   safeRender(() => renderStockOverview(cards[1]));
@@ -14,14 +18,13 @@ export function renderSummaries() {
 }
 
 /* ==========================================
-   SAFE WRAPPER (Prevents Blank App)
+   SAFE WRAPPER
 ========================================== */
 
 function safeRender(fn) {
-  try {
-    if (typeof fn === "function") fn();
-  } catch (err) {
-    console.error("Summary render error:", err);
+  try { fn(); }
+  catch (err) {
+    console.error("Summary Render Error:", err);
   }
 }
 
@@ -29,8 +32,8 @@ function safeRender(fn) {
    FORMATTER
 ========================================== */
 
-function format(value) {
-  return Number(value || 0).toLocaleString("en-IN");
+function format(val) {
+  return Number(val || 0).toLocaleString("en-IN");
 }
 
 /* ==========================================
@@ -39,9 +42,8 @@ function format(value) {
 
 function renderSaleDetails(card) {
 
-  if (!card) return;
-  const data = computedStore.summaries?.saleDetails;
-  if (!data || !data.rows) return;
+  const data = computedStore.summaries.saleDetails;
+  if (!data) return;
 
   let rowsHTML = "";
 
@@ -84,9 +86,8 @@ function renderSaleDetails(card) {
 
 function renderStockOverview(card) {
 
-  if (!card) return;
-  const data = computedStore.summaries?.stockOverview;
-  if (!data || !data.rows) return;
+  const data = computedStore.summaries.stockOverview;
+  if (!data) return;
 
   let rowsHTML = "";
 
@@ -101,6 +102,16 @@ function renderStockOverview(card) {
       </tr>
     `;
   });
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td><strong>Grand Total</strong></td>
+      <td><strong>${format(data.grandTotal.totalStock)}</strong></td>
+      <td><strong>${format(data.grandTotal.totalUnits)}</strong></td>
+      <td><strong>${format(data.grandTotal.drr)}</strong></td>
+      <td><strong>${format(data.grandTotal.sc)}</strong></td>
+    </tr>
+  `;
 
   card.innerHTML = `
     <h3>Current FC Stock</h3>
@@ -125,8 +136,7 @@ function renderStockOverview(card) {
 
 function renderSCBand(card) {
 
-  if (!card) return;
-  const rows = computedStore.summaries?.scBandSummary;
+  const rows = computedStore.summaries.scBandSummary;
   if (!rows) return;
 
   let rowsHTML = "";
@@ -135,7 +145,7 @@ function renderSCBand(card) {
     rowsHTML += `
       <tr>
         <td>${row.band}</td>
-        <td>${row.styleCount}</td>
+        <td>${format(row.styleCount)}</td>
         <td>${format(row.totalUnits)}</td>
         <td>${format(row.totalStock)}</td>
       </tr>
@@ -159,15 +169,68 @@ function renderSCBand(card) {
 }
 
 /* ==========================================
-   4️⃣ SIZE-WISE
+   4️⃣ SIZE-WISE ANALYSIS
 ========================================== */
 
 function renderSizeWise(card) {
-  if (!card) return;
-  const rows = computedStore.summaries?.sizeWise;
+
+  const rows = computedStore.summaries.sizeWise;
   if (!rows) return;
 
-  card.innerHTML = `<h3>Size-wise Analysis</h3>`;
+  let rowsHTML = "";
+  let grandUnits = 0;
+  let grandStock = 0;
+
+  rows.forEach(row => {
+    grandUnits += row.unitsSold;
+    grandStock += row.unitsInStock;
+  });
+
+  rows.forEach(row => {
+    rowsHTML += `
+      <tr>
+        <td>${row.size}</td>
+        <td>${row.category}</td>
+        <td>${format(row.unitsSold)}</td>
+        <td>${format(grandUnits)}</td>
+        <td>${row.sizeShare}%</td>
+        <td>-</td>
+        <td>${format(row.unitsInStock)}</td>
+        <td>${format(grandStock)}</td>
+      </tr>
+    `;
+  });
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td colspan="2"><strong>Grand Total</strong></td>
+      <td><strong>${format(grandUnits)}</strong></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><strong>${format(grandStock)}</strong></td>
+      <td></td>
+    </tr>
+  `;
+
+  card.innerHTML = `
+    <h3>Size-wise Analysis</h3>
+    <table class="mini-summary-table">
+      <thead>
+        <tr>
+          <th>Size</th>
+          <th>Category</th>
+          <th>Units Sold</th>
+          <th>Total Units Sold</th>
+          <th>Size % Share</th>
+          <th>Category % Share</th>
+          <th>Units in Stock</th>
+          <th>Total Stock</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>
+  `;
 }
 
 /* ==========================================
@@ -175,11 +238,57 @@ function renderSizeWise(card) {
 ========================================== */
 
 function renderCompanyRemark(card) {
-  if (!card) return;
-  const rows = computedStore.summaries?.companyRemark;
+
+  const rows = computedStore.summaries.companyRemark;
   if (!rows) return;
 
-  card.innerHTML = `<h3>Company Remark-wise Sale</h3>`;
+  let rowsHTML = "";
+  let totalUnits = 0;
+  let totalStock = 0;
+
+  rows
+    .sort((a,b) => b.totalUnits - a.totalUnits)
+    .forEach(row => {
+
+      totalUnits += row.totalUnits;
+      totalStock += row.totalStock;
+
+      rowsHTML += `
+        <tr>
+          <td>${row.remark}</td>
+          <td>${format(row.totalUnits)}</td>
+          <td>${format(row.drr)}</td>
+          <td>${format(row.totalStock)}</td>
+          <td>${format(row.sc)}</td>
+        </tr>
+      `;
+    });
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td><strong>Grand Total</strong></td>
+      <td><strong>${format(totalUnits)}</strong></td>
+      <td></td>
+      <td><strong>${format(totalStock)}</strong></td>
+      <td></td>
+    </tr>
+  `;
+
+  card.innerHTML = `
+    <h3>Company Remark-wise Sale</h3>
+    <table class="mini-summary-table">
+      <thead>
+        <tr>
+          <th>Company Remark</th>
+          <th>Total Units Sold</th>
+          <th>DRR</th>
+          <th>Total Stock</th>
+          <th>SC</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>
+  `;
 }
 
 /* ==========================================
@@ -187,9 +296,55 @@ function renderCompanyRemark(card) {
 ========================================== */
 
 function renderCategory(card) {
-  if (!card) return;
-  const rows = computedStore.summaries?.category;
+
+  const rows = computedStore.summaries.category;
   if (!rows) return;
 
-  card.innerHTML = `<h3>Category-wise Sale</h3>`;
+  let rowsHTML = "";
+  let totalUnits = 0;
+  let totalStock = 0;
+
+  rows
+    .sort((a,b) => b.totalUnits - a.totalUnits)
+    .forEach(row => {
+
+      totalUnits += row.totalUnits;
+      totalStock += row.totalStock;
+
+      rowsHTML += `
+        <tr>
+          <td>${row.category}</td>
+          <td>${format(row.totalUnits)}</td>
+          <td>${format(row.drr)}</td>
+          <td>${format(row.totalStock)}</td>
+          <td>${format(row.sc)}</td>
+        </tr>
+      `;
+    });
+
+  rowsHTML += `
+    <tr class="grand-row">
+      <td><strong>Grand Total</strong></td>
+      <td><strong>${format(totalUnits)}</strong></td>
+      <td></td>
+      <td><strong>${format(totalStock)}</strong></td>
+      <td></td>
+    </tr>
+  `;
+
+  card.innerHTML = `
+    <h3>Category-wise Sale</h3>
+    <table class="mini-summary-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Total Units Sold</th>
+          <th>DRR</th>
+          <th>Total Stock</th>
+          <th>SC</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>
+  `;
 }

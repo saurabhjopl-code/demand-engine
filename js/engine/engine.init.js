@@ -11,6 +11,7 @@ import { consolidateProduction } from "./production.engine.js";
 import { calculateDirectDemand } from "./directdemand.engine.js";
 import { calculateBuyBucket } from "./buybucket.engine.js";
 import { buildSummaries } from "./summary.engine.js";
+import { renderSummaries } from "../ui/summary.binding.js";
 
 export function initializeEngine() {
 
@@ -32,8 +33,10 @@ export function initializeEngine() {
   calculateDirectDemand();
   calculateBuyBucket();
 
-  // 🔥 NEW — BUILD SUMMARIES
   buildSummaries();
 
-  console.log("Summaries Built:", computedStore.summaries);
+  // 🔥 NEW — Render to UI
+  renderSummaries();
+
+  console.log("Summaries Rendered");
 }

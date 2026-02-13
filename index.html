@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Demand Planning Engine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="./css/reset.css" />
+  <link rel="stylesheet" href="./css/variables.css" />
+  <link rel="stylesheet" href="./css/layout.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/reports.css" />
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <img src="./assets/logo.png" class="logo" />
+      <h1>Demand Planning Engine</h1>
+    </div>
+    <button class="btn export-btn">Export</button>
+  </header>
+
+
+  <!-- ACTION ROW -->
+  <section class="action-row">
+    <button class="btn refresh-btn">Refresh</button>
+
+    <div class="progress-container">
+      <div class="progress-bar"></div>
+      <span class="progress-text">0%</span>
+    </div>
+  </section>
+
+
+  <!-- FILTER ROW -->
+  <section class="filter-row">
+    <input type="text" placeholder="Search..." class="search-input" />
+
+    <select class="filter-select"><option>Month ▼</option></select>
+    <select class="filter-select"><option>FC ▼</option></select>
+    <select class="filter-select"><option>Category ▼</option></select>
+    <select class="filter-select"><option>Remark ▼</option></select>
+    <select class="filter-select"><option>SC Band ▼</option></select>
+  </section>
+
+
+  <!-- SUMMARY GRID -->
+  <section class="summary-grid">
+    <div class="summary-card">Sale Details</div>
+    <div class="summary-card">Current FC Stock</div>
+    <div class="summary-card">SC Band Summary</div>
+    <div class="summary-card">Size-wise Analysis</div>
+    <div class="summary-card">Company Remark-wise Sale</div>
+    <div class="summary-card">Category-wise Sale</div>
+  </section>
+
+
+  <!-- REPORT TABS -->
+  <section class="report-tabs">
+    <button class="tab active">Demand</button>
+    <button class="tab">Overstock</button>
+    <button class="tab">Size Curve</button>
+    <button class="tab">Broken</button>
+    <button class="tab">Hero</button>
+    <button class="tab">DW</button>
+  </section>
+
+
+  <!-- REPORT SECTION -->
+  <section class="report-container">
+
+    <!-- Demand Tab Extra Summary -->
+    <div class="buybucket-summary">
+      <h3>Buy Bucket Summary</h3>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Buy Bucket</th>
+            <th>Total Pendancy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Critical</td>
+            <td>0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- Main Report Table -->
+    <div class="table-wrapper">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Style / SKU</th>
+            <th>Sales</th>
+            <th>Stock</th>
+            <th>DRR</th>
+            <th>SC</th>
+            <th>Demand</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sample SKU</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+</body>
+</html>

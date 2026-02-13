@@ -34,12 +34,12 @@
     <div class="progress-section">
 
       <div class="progress-container">
-        <div class="progress-bar"></div>
+        <div class="progress-bar" id="progressBar"></div>
       </div>
 
       <div class="progress-meta">
-        <span class="progress-text">0%</span>
-        <span class="sheet-info">
+        <span class="progress-text" id="progressText">0%</span>
+        <span class="sheet-info" id="sheetInfo">
           Sales: 0 | Stock: 0 | Style Status: 0 | Sale Days: 0 |
           Size Count: 0 | Production: 0 | Meter Calc: 0 |
           Location: 0 | X Mark Up: 0
@@ -48,7 +48,7 @@
 
     </div>
 
-    <button class="btn refresh-btn">Refresh</button>
+    <button class="btn refresh-btn" id="refreshBtn">Refresh</button>
 
   </section>
 
@@ -64,8 +64,9 @@
       <select class="filter-select"><option>SC Band ▼</option></select>
     </div>
 
-    <div class="filters-right">
-      <input type="text" placeholder="Search..." class="search-input" />
+    <div class="filters-right search-wrapper">
+      <input type="text" placeholder="Search..." class="search-input" id="searchInput" />
+      <span class="search-clear" id="clearSearch">✕</span>
     </div>
 
   </section>
@@ -99,13 +100,12 @@
   <section class="report-container">
 
     <!-- BUY BUCKET CARD -->
-    <div class="report-card buybucket-card">
+    <div class="report-card">
       <div class="card-header">
         <h3>Buy Bucket Summary</h3>
       </div>
-
       <div class="card-body">
-        <table class="summary-table">
+        <table class="summary-table" id="buyBucketTable">
           <thead>
             <tr>
               <th>Buy Bucket</th>
@@ -122,15 +122,13 @@
       </div>
     </div>
 
-
     <!-- DEMAND REPORT CARD -->
-    <div class="report-card demand-card">
+    <div class="report-card">
       <div class="card-header">
         <h3>Demand Report</h3>
       </div>
-
       <div class="card-body table-wrapper">
-        <table class="report-table">
+        <table class="report-table" id="demandTable">
           <thead>
             <tr>
               <th>Style / SKU</th>
@@ -156,6 +154,8 @@
     </div>
 
   </section>
+
+  <script src="./js/ui-basic.js"></script>
 
 </body>
 </html>

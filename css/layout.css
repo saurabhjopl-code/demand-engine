@@ -91,7 +91,7 @@ body {
   display: flex;
 }
 
-/* SUMMARY GRID 3x2 */
+/* SUMMARY GRID */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -110,7 +110,7 @@ body {
 }
 
 .report-container {
-  padding: 20px 25px;
+  padding: 25px;
   height: calc(100vh - 500px);
   overflow-y: auto;
 }

@@ -3,18 +3,7 @@ import { parseCSV } from "../data/parser.service.js";
 import { validateHeaders } from "../data/validator.service.js";
 import { dataStore } from "../store/data.store.js";
 import { populateFilters } from "../ui/filter.populate.js";
-
-/* ================================
-   FUTURE ENGINE INITIALIZER
-   (Safe extension – does nothing if file not yet created)
-================================ */
-let initializeEngine = () => {};
-try {
-  const module = await import("../engine/engine.init.js");
-  initializeEngine = module.initializeEngine || (() => {});
-} catch (e) {
-  // Engine not yet created – safe ignore
-}
+import { initializeEngine } from "../engine/engine.init.js";
 
 /* ================================
    SHEET CONFIGURATION
@@ -74,10 +63,7 @@ const refreshBtn = document.getElementById("refreshBtn");
 
 export async function loadSheets() {
 
-  // Clear existing raw store
   dataStore.clear();
-
-  // Reset UI progress & row counts
   resetUI();
 
   let completed = 0;
@@ -101,15 +87,11 @@ export async function loadSheets() {
     progressText.textContent = percent + "%";
   }
 
-  /* =====================================
-     AFTER ALL SHEETS LOADED
-  ===================================== */
-
-  // Populate filter dropdowns
+  // Populate filters
   populateFilters(dataStore.raw);
 
-  // Initialize engine (if exists)
-  initializeEngine(dataStore.raw);
+  // 🔥 Initialize full engine
+  initializeEngine();
 }
 
 /* ================================

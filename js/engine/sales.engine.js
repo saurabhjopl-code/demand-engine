@@ -17,7 +17,7 @@ export function consolidateSales(salesData) {
 
     if (!sku) continue;
 
-    // SKU Level Consolidation
+    // SKU-level consolidation
     if (!skuMap[sku]) {
       skuMap[sku] = {
         uniwareSKU: sku,
@@ -28,7 +28,7 @@ export function consolidateSales(salesData) {
 
     skuMap[sku].totalUnits += units;
 
-    // Style Level Consolidation
+    // Style-level consolidation
     if (style) {
       if (!styleMap[style]) {
         styleMap[style] = {

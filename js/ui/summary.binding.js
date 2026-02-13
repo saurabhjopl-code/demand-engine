@@ -9,6 +9,7 @@ export function renderSummaries() {
   renderStockOverview(cards[1]);
   renderSCBand(cards[2]);
   renderSizeWise(cards[3]);
+  renderCompanyRemark(cards[4]);
 }
 
 /* ==========================================
@@ -231,6 +232,49 @@ function renderSizeWise(card) {
           <th>Category % Share</th>
           <th>Units in Stock</th>
           <th>Total Stock</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>
+  `;
+}
+
+/* ==========================================
+   COMPANY REMARK SUMMARY
+========================================== */
+
+function renderCompanyRemark(card) {
+
+  const rows = computedStore.summaries.companyRemark;
+  if (!rows) return;
+
+  let rowsHTML = "";
+
+  rows
+    .sort((a,b) => b.totalUnits - a.totalUnits)
+    .forEach(row => {
+
+      rowsHTML += `
+        <tr>
+          <td>${row.remark}</td>
+          <td>${format(row.totalUnits)}</td>
+          <td>${format(row.drr)}</td>
+          <td>${format(row.totalStock)}</td>
+          <td>${format(row.sc)}</td>
+        </tr>
+      `;
+    });
+
+  card.innerHTML = `
+    <h3>Company Remark-wise Sale</h3>
+    <table class="mini-summary-table">
+      <thead>
+        <tr>
+          <th>Company Remark</th>
+          <th>Total Units Sold</th>
+          <th>DRR</th>
+          <th>Total Stock</th>
+          <th>SC</th>
         </tr>
       </thead>
       <tbody>${rowsHTML}</tbody>

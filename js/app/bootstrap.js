@@ -2,6 +2,11 @@ import { fetchSheet } from "../data/fetch.service.js";
 import { parseCSV } from "../data/parser.service.js";
 import { validateHeaders } from "../data/validator.service.js";
 import { dataStore } from "../store/data.store.js";
+import { populateFilters } from "../ui/filter.populate.js";
+
+/* ================================
+   SHEET CONFIGURATION
+================================ */
 
 const SHEETS = [
   {
@@ -42,22 +47,34 @@ const SHEETS = [
   }
 ];
 
+/* ================================
+   UI REFERENCES
+================================ */
+
 const progressBar = document.getElementById("progressBar");
 const progressText = document.getElementById("progressText");
 const sheetInfo = document.getElementById("sheetInfo");
 const refreshBtn = document.getElementById("refreshBtn");
 
+/* ================================
+   MAIN LOADER
+================================ */
+
 export async function loadSheets() {
 
-  // Reset everything
+  // Clear existing store
   dataStore.clear();
+
+  // Reset UI
   resetUI();
 
   let completed = 0;
 
   for (const sheet of SHEETS) {
+
     const csv = await fetchSheet(sheet.url);
     const parsed = parseCSV(csv);
+
     validateHeaders(sheet.name, parsed.headers);
 
     dataStore.set(sheet.name, parsed.rows);
@@ -65,13 +82,23 @@ export async function loadSheets() {
     updateSheetInfo(sheet.name, parsed.rows.length);
 
     completed++;
+
     const percent = Math.floor((completed / SHEETS.length) * 100);
+
     progressBar.style.width = percent + "%";
     progressText.textContent = percent + "%";
   }
+
+  // After ALL sheets load → populate filters
+  populateFilters(dataStore.raw);
 }
 
+/* ================================
+   RESET UI
+================================ */
+
 function resetUI() {
+
   progressBar.style.width = "0%";
   progressText.textContent = "0%";
 
@@ -81,15 +108,28 @@ function resetUI() {
     "Location: 0 | X Mark Up: 0";
 }
 
+/* ================================
+   UPDATE SHEET ROW COUNTS
+================================ */
+
 function updateSheetInfo(name, count) {
+
   const regex = new RegExp(`${name}:\\s*\\d+`);
-  sheetInfo.textContent = sheetInfo.textContent.replace(regex, `${name}: ${count}`);
+
+  sheetInfo.textContent =
+    sheetInfo.textContent.replace(regex, `${name}: ${count}`);
 }
 
-// Initial Load
+/* ================================
+   INITIAL LOAD
+================================ */
+
 loadSheets();
 
-// Refresh Click
+/* ================================
+   REFRESH HANDLER
+================================ */
+
 refreshBtn.addEventListener("click", async () => {
   await loadSheets();
 });

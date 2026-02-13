@@ -5,12 +5,12 @@ export function buildSummaries() {
 
   buildMonthWiseSaleSummary();
   buildFCWiseStockSummary();
-  buildSCBandSummary();
+  buildNumericSCBandSummary();
 }
 
-/* ======================================
-   1️⃣ MONTH-WISE SALE DETAILS
-====================================== */
+/* ==========================================
+   1️⃣ MONTH-WISE SALE SUMMARY
+========================================== */
 
 function buildMonthWiseSaleSummary() {
 
@@ -18,6 +18,8 @@ function buildMonthWiseSaleSummary() {
   const saleDaysData = dataStore.get("Sale Days");
 
   const monthMap = {};
+  let grandUnits = 0;
+  let grandDays = 0;
 
   salesData.forEach(row => {
 
@@ -26,7 +28,7 @@ function buildMonthWiseSaleSummary() {
 
     if (!monthMap[month]) {
       monthMap[month] = {
-        month: month,
+        month,
         totalUnits: 0,
         days: 0
       };
@@ -35,8 +37,8 @@ function buildMonthWiseSaleSummary() {
     monthMap[month].totalUnits += units;
   });
 
-  // Map days
   saleDaysData.forEach(row => {
+
     const month = row["Month"];
     const days = Number(row["Days"] || 0);
 
@@ -45,27 +47,59 @@ function buildMonthWiseSaleSummary() {
     }
   });
 
-  // Calculate DRR per month
-  Object.keys(monthMap).forEach(month => {
-    const obj = monthMap[month];
+  Object.values(monthMap).forEach(obj => {
+
     obj.drr = obj.days > 0
       ? Number((obj.totalUnits / obj.days).toFixed(2))
       : 0;
+
+    grandUnits += obj.totalUnits;
+    grandDays += obj.days;
   });
 
-  computedStore.summaries.saleDetails = monthMap;
+  const grandDRR = grandDays > 0
+    ? Number((grandUnits / grandDays).toFixed(2))
+    : 0;
+
+  computedStore.summaries.saleDetails = {
+    rows: Object.values(monthMap),
+    grandTotal: {
+      totalUnits: grandUnits,
+      drr: grandDRR
+    }
+  };
 }
 
-/* ======================================
+/* ==========================================
    2️⃣ FC-WISE STOCK SUMMARY
-====================================== */
+========================================== */
 
 function buildFCWiseStockSummary() {
 
+  const salesData = dataStore.get("Sales");
   const stockData = dataStore.get("Stock");
+  const totalDays = computedStore.totalDays;
 
   const fcMap = {};
 
+  // Sales by FC
+  salesData.forEach(row => {
+
+    const fc = row["FC"];
+    const units = Number(row["Units"] || 0);
+
+    if (!fcMap[fc]) {
+      fcMap[fc] = {
+        fc,
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    fcMap[fc].totalUnits += units;
+  });
+
+  // Stock by FC
   stockData.forEach(row => {
 
     const fc = row["FC"];
@@ -73,7 +107,8 @@ function buildFCWiseStockSummary() {
 
     if (!fcMap[fc]) {
       fcMap[fc] = {
-        fc: fc,
+        fc,
+        totalUnits: 0,
         totalStock: 0
       };
     }
@@ -81,40 +116,81 @@ function buildFCWiseStockSummary() {
     fcMap[fc].totalStock += units;
   });
 
-  computedStore.summaries.stockOverview = fcMap;
+  let grandUnits = 0;
+  let grandStock = 0;
+
+  Object.values(fcMap).forEach(obj => {
+
+    obj.drr = totalDays > 0
+      ? Number((obj.totalUnits / totalDays).toFixed(2))
+      : 0;
+
+    obj.sc = obj.drr > 0
+      ? Math.round(obj.totalStock / obj.drr)
+      : 0;
+
+    grandUnits += obj.totalUnits;
+    grandStock += obj.totalStock;
+  });
+
+  const grandDRR = totalDays > 0
+    ? Number((grandUnits / totalDays).toFixed(2))
+    : 0;
+
+  const grandSC = grandDRR > 0
+    ? Math.round(grandStock / grandDRR)
+    : 0;
+
+  computedStore.summaries.stockOverview = {
+    rows: Object.values(fcMap),
+    grandTotal: {
+      totalUnits: grandUnits,
+      totalStock: grandStock,
+      drr: grandDRR,
+      sc: grandSC
+    }
+  };
 }
 
-/* ======================================
-   3️⃣ SC BAND SUMMARY (WITH RANGE)
-====================================== */
+/* ==========================================
+   3️⃣ NUMERIC SC BAND SUMMARY (BY STYLE)
+========================================== */
 
-function buildSCBandSummary() {
+function buildNumericSCBandSummary() {
 
-  const bandMap = {};
-
-  const bandRanges = {
-    "Critical": "0–30",
-    "RISK": "30–45",
-    "Healthy": "45–60",
-    "SAFE": "60–90",
-    "WATCH": "90–120",
-    "Overstock": "120+"
+  const bucketMap = {
+    "0–30": { styles: new Set(), units: 0, stock: 0 },
+    "30–60": { styles: new Set(), units: 0, stock: 0 },
+    "60–120": { styles: new Set(), units: 0, stock: 0 },
+    "120+": { styles: new Set(), units: 0, stock: 0 }
   };
 
-  for (const sku in computedStore.skuSCBand) {
+  for (const sku in computedStore.skuSC) {
 
-    const band = computedStore.skuSCBand[sku].band;
+    const sc = computedStore.skuSC[sku].sc;
+    const style = computedStore.skuSales[sku]?.styleID;
+    const units = computedStore.skuSales[sku]?.totalUnits || 0;
+    const stock = computedStore.skuStock[sku]?.totalStock || 0;
 
-    if (!bandMap[band]) {
-      bandMap[band] = {
-        band: band,
-        range: bandRanges[band],
-        skuCount: 0
-      };
-    }
+    let bucket = "0–30";
 
-    bandMap[band].skuCount += 1;
+    if (sc >= 120) bucket = "120+";
+    else if (sc >= 60) bucket = "60–120";
+    else if (sc >= 30) bucket = "30–60";
+    else bucket = "0–30";
+
+    if (style) bucketMap[bucket].styles.add(style);
+
+    bucketMap[bucket].units += units;
+    bucketMap[bucket].stock += stock;
   }
 
-  computedStore.summaries.scBandSummary = bandMap;
+  const rows = Object.keys(bucketMap).map(bucket => ({
+    band: bucket,
+    styleCount: bucketMap[bucket].styles.size,
+    totalUnits: bucketMap[bucket].units,
+    totalStock: bucketMap[bucket].stock
+  }));
+
+  computedStore.summaries.scBandSummary = rows;
 }

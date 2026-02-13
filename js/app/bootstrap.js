@@ -5,6 +5,18 @@ import { dataStore } from "../store/data.store.js";
 import { populateFilters } from "../ui/filter.populate.js";
 
 /* ================================
+   FUTURE ENGINE INITIALIZER
+   (Safe extension – does nothing if file not yet created)
+================================ */
+let initializeEngine = () => {};
+try {
+  const module = await import("../engine/engine.init.js");
+  initializeEngine = module.initializeEngine || (() => {});
+} catch (e) {
+  // Engine not yet created – safe ignore
+}
+
+/* ================================
    SHEET CONFIGURATION
 ================================ */
 
@@ -62,10 +74,10 @@ const refreshBtn = document.getElementById("refreshBtn");
 
 export async function loadSheets() {
 
-  // Clear existing store
+  // Clear existing raw store
   dataStore.clear();
 
-  // Reset UI
+  // Reset UI progress & row counts
   resetUI();
 
   let completed = 0;
@@ -89,8 +101,15 @@ export async function loadSheets() {
     progressText.textContent = percent + "%";
   }
 
-  // After ALL sheets load → populate filters
+  /* =====================================
+     AFTER ALL SHEETS LOADED
+  ===================================== */
+
+  // Populate filter dropdowns
   populateFilters(dataStore.raw);
+
+  // Initialize engine (if exists)
+  initializeEngine(dataStore.raw);
 }
 
 /* ================================

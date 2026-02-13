@@ -45,8 +45,14 @@ const SHEETS = [
 const progressBar = document.getElementById("progressBar");
 const progressText = document.getElementById("progressText");
 const sheetInfo = document.getElementById("sheetInfo");
+const refreshBtn = document.getElementById("refreshBtn");
 
-async function loadSheets() {
+export async function loadSheets() {
+
+  // Reset everything
+  dataStore.clear();
+  resetUI();
+
   let completed = 0;
 
   for (const sheet of SHEETS) {
@@ -65,13 +71,25 @@ async function loadSheets() {
   }
 }
 
-function updateSheetInfo(name, count) {
-  const current = sheetInfo.textContent;
-  const updated = current.replace(
-    new RegExp(`${name}:\\s*\\d+`),
-    `${name}: ${count}`
-  );
-  sheetInfo.textContent = updated;
+function resetUI() {
+  progressBar.style.width = "0%";
+  progressText.textContent = "0%";
+
+  sheetInfo.textContent =
+    "Sales: 0 | Stock: 0 | Style Status: 0 | Sale Days: 0 | " +
+    "Size Count: 0 | Production: 0 | Meter Calc: 0 | " +
+    "Location: 0 | X Mark Up: 0";
 }
 
+function updateSheetInfo(name, count) {
+  const regex = new RegExp(`${name}:\\s*\\d+`);
+  sheetInfo.textContent = sheetInfo.textContent.replace(regex, `${name}: ${count}`);
+}
+
+// Initial Load
 loadSheets();
+
+// Refresh Click
+refreshBtn.addEventListener("click", async () => {
+  await loadSheets();
+});

@@ -2,18 +2,34 @@ import { computedStore } from "../store/computed.store.js";
 
 export function renderSummaries() {
 
-  renderSaleDetails();
-  renderStockOverview();
-  renderSCBandSummary();
+  // Ensure DOM ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderSummariesInternal);
+  } else {
+    renderSummariesInternal();
+  }
+}
+
+function renderSummariesInternal() {
+
+  const cards = document.querySelectorAll(".summary-card");
+
+  if (!cards || cards.length < 3) {
+    console.warn("Summary cards not found in DOM.");
+    return;
+  }
+
+  renderSaleDetails(cards[0]);
+  renderStockOverview(cards[1]);
+  renderSCBandSummary(cards[2]);
 }
 
 /* ======================================
-   1️⃣ SALE DETAILS CARD
+   1️⃣ SALE DETAILS
 ====================================== */
 
-function renderSaleDetails() {
+function renderSaleDetails(card) {
 
-  const card = document.querySelectorAll(".summary-card")[0];
   const data = computedStore.summaries.saleDetails;
 
   card.innerHTML = `
@@ -25,12 +41,11 @@ function renderSaleDetails() {
 }
 
 /* ======================================
-   2️⃣ STOCK OVERVIEW CARD
+   2️⃣ STOCK OVERVIEW
 ====================================== */
 
-function renderStockOverview() {
+function renderStockOverview(card) {
 
-  const card = document.querySelectorAll(".summary-card")[1];
   const data = computedStore.summaries.stockOverview;
 
   card.innerHTML = `
@@ -43,27 +58,38 @@ function renderStockOverview() {
 }
 
 /* ======================================
-   3️⃣ SC BAND SUMMARY CARD
+   3️⃣ SC BAND SUMMARY
 ====================================== */
 
-function renderSCBandSummary() {
+function renderSCBandSummary(card) {
 
-  const card = document.querySelectorAll(".summary-card")[2];
   const data = computedStore.summaries.scBandSummary;
 
   let html = `<h3>SC Band Summary</h3>`;
 
-  for (const band in data) {
+  const bandOrder = [
+    "Critical",
+    "RISK",
+    "Healthy",
+    "SAFE",
+    "WATCH",
+    "Overstock"
+  ];
 
-    html += `
-      <div style="margin-top:8px;">
-        <strong>${band}</strong><br/>
-        SKUs: ${data[band].skuCount}<br/>
-        Units Sold: ${data[band].totalUnitsSold}<br/>
-        Stock: ${data[band].totalStock}
-      </div>
-    `;
-  }
+  bandOrder.forEach(band => {
+
+    if (data[band]) {
+
+      html += `
+        <div style="margin-top:8px;">
+          <strong>${band}</strong><br/>
+          SKUs: ${data[band].skuCount}<br/>
+          Units Sold: ${data[band].totalUnitsSold}<br/>
+          Stock: ${data[band].totalStock}
+        </div>
+      `;
+    }
+  });
 
   card.innerHTML = html;
 }

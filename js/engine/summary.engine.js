@@ -10,7 +10,7 @@ export function buildSummaries() {
   buildMonthWiseSaleSummary();
   buildFCWiseStockSummary();
   buildNumericSCBandSummary();
-  buildSizeWiseSummary(); // 🔥 NEW
+  buildSizeWiseSummary();
 }
 
 /* ==========================================
@@ -32,11 +32,7 @@ function buildMonthWiseSaleSummary() {
     const units = Number(row["Units"] || 0);
 
     if (!monthMap[month]) {
-      monthMap[month] = {
-        month,
-        totalUnits: 0,
-        days: 0
-      };
+      monthMap[month] = { month, totalUnits: 0, days: 0 };
     }
 
     monthMap[month].totalUnits += units;
@@ -68,10 +64,7 @@ function buildMonthWiseSaleSummary() {
 
   computedStore.summaries.saleDetails = {
     rows: Object.values(monthMap),
-    grandTotal: {
-      totalUnits: grandUnits,
-      drr: grandDRR
-    }
+    grandTotal: { totalUnits: grandUnits, drr: grandDRR }
   };
 }
 
@@ -93,11 +86,7 @@ function buildFCWiseStockSummary() {
     const units = Number(row["Units"] || 0);
 
     if (!fcMap[fc]) {
-      fcMap[fc] = {
-        fc,
-        totalUnits: 0,
-        totalStock: 0
-      };
+      fcMap[fc] = { fc, totalUnits: 0, totalStock: 0 };
     }
 
     fcMap[fc].totalUnits += units;
@@ -109,11 +98,7 @@ function buildFCWiseStockSummary() {
     const units = Number(row["Units"] || 0);
 
     if (!fcMap[fc]) {
-      fcMap[fc] = {
-        fc,
-        totalUnits: 0,
-        totalStock: 0
-      };
+      fcMap[fc] = { fc, totalUnits: 0, totalStock: 0 };
     }
 
     fcMap[fc].totalStock += units;
@@ -156,7 +141,7 @@ function buildFCWiseStockSummary() {
 }
 
 /* ==========================================
-   3️⃣ NUMERIC SC BAND SUMMARY (BY STYLE)
+   3️⃣ NUMERIC SC BAND SUMMARY
 ========================================== */
 
 function buildNumericSCBandSummary() {
@@ -187,104 +172,91 @@ function buildNumericSCBandSummary() {
     bucketMap[bucket].stock += stock;
   }
 
-  const rows = Object.keys(bucketMap).map(bucket => ({
-    band: bucket,
-    styleCount: bucketMap[bucket].styles.size,
-    totalUnits: bucketMap[bucket].units,
-    totalStock: bucketMap[bucket].stock
-  }));
-
-  computedStore.summaries.scBandSummary = rows;
+  computedStore.summaries.scBandSummary =
+    Object.keys(bucketMap).map(bucket => ({
+      band: bucket,
+      styleCount: bucketMap[bucket].styles.size,
+      totalUnits: bucketMap[bucket].units,
+      totalStock: bucketMap[bucket].stock
+    }));
 }
 
 /* ==========================================
-   4️⃣ SIZE-WISE ANALYSIS
+   4️⃣ SIZE-WISE ANALYSIS (FIXED CATEGORY)
 ========================================== */
 
 function buildSizeWiseSummary() {
 
   const salesData = dataStore.get("Sales") || [];
   const stockData = dataStore.get("Stock") || [];
-  const styleStatus = dataStore.get("Style Status") || [];
 
-  const styleCategoryMap = {};
+  const SIZE_ORDER = [
+    "FS","XS","S","M","L","XL","XXL",
+    "3XL","4XL","5XL","6XL",
+    "7XL","8XL","9XL","10XL"
+  ];
 
-  styleStatus.forEach(row => {
-    styleCategoryMap[row["Style ID"]] = row["Category"] || "Unknown";
+  const SIZE_CATEGORY = {
+    "FS": "FS",
+    "XS": "Normal",
+    "S": "Normal",
+    "M": "Normal",
+    "L": "Normal",
+    "XL": "Normal",
+    "XXL": "Normal",
+    "3XL": "PLUS 1",
+    "4XL": "PLUS 1",
+    "5XL": "PLUS 1",
+    "6XL": "PLUS 1",
+    "7XL": "PLUS 2",
+    "8XL": "PLUS 2",
+    "9XL": "PLUS 2",
+    "10XL": "PLUS 2"
+  };
+
+  const sizeMap = {};
+
+  SIZE_ORDER.forEach(size => {
+    sizeMap[size] = {
+      size,
+      category: SIZE_CATEGORY[size],
+      unitsSold: 0,
+      unitsInStock: 0
+    };
   });
 
-  const categoryMap = {};
-
   salesData.forEach(row => {
-
-    const style = row["Style ID"];
     const size = row["Size"];
     const units = Number(row["Units"] || 0);
-    const category = styleCategoryMap[style] || "Unknown";
-
-    if (!categoryMap[category]) {
-      categoryMap[category] = {
-        totalUnits: 0,
-        totalStock: 0,
-        sizes: {}
-      };
+    if (sizeMap[size]) {
+      sizeMap[size].unitsSold += units;
     }
-
-    if (!categoryMap[category].sizes[size]) {
-      categoryMap[category].sizes[size] = {
-        unitsSold: 0,
-        stock: 0
-      };
-    }
-
-    categoryMap[category].sizes[size].unitsSold += units;
-    categoryMap[category].totalUnits += units;
   });
 
   stockData.forEach(row => {
-
-    const style = row["Style ID"];
     const size = row["Size"];
     const units = Number(row["Units"] || 0);
-    const category = styleCategoryMap[style] || "Unknown";
-
-    if (!categoryMap[category]) return;
-
-    if (!categoryMap[category].sizes[size]) {
-      categoryMap[category].sizes[size] = {
-        unitsSold: 0,
-        stock: 0
-      };
+    if (sizeMap[size]) {
+      sizeMap[size].unitsInStock += units;
     }
-
-    categoryMap[category].sizes[size].stock += units;
-    categoryMap[category].totalStock += units;
   });
 
-  const finalRows = [];
+  const grandUnits = Object.values(sizeMap)
+    .reduce((sum, r) => sum + r.unitsSold, 0);
 
-  Object.keys(categoryMap).forEach(category => {
+  const grandStock = Object.values(sizeMap)
+    .reduce((sum, r) => sum + r.unitsInStock, 0);
 
-    const catObj = categoryMap[category];
-
-    Object.keys(catObj.sizes).forEach(size => {
-
-      const sizeObj = catObj.sizes[size];
-
-      const sizeShare = catObj.totalUnits > 0
-        ? (sizeObj.unitsSold / catObj.totalUnits) * 100
-        : 0;
-
-      finalRows.push({
-        size,
-        category,
-        unitsSold: sizeObj.unitsSold,
-        totalUnits: catObj.totalUnits,
-        sizeShare: Number(sizeShare.toFixed(2)),
-        unitsInStock: sizeObj.stock,
-        totalStock: catObj.totalStock
-      });
-    });
+  const finalRows = SIZE_ORDER.map(size => {
+    const row = sizeMap[size];
+    return {
+      ...row,
+      totalUnits: grandUnits,
+      totalStock: grandStock,
+      sizeShare: grandUnits > 0
+        ? Number(((row.unitsSold / grandUnits) * 100).toFixed(2))
+        : 0
+    };
   });
 
   computedStore.summaries.sizeWise = finalRows;

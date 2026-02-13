@@ -5,6 +5,7 @@
   background: var(--white);
   border-radius: var(--radius);
   overflow: hidden;
+  text-align: center;
 }
 
 .report-table th,
@@ -13,7 +14,7 @@
 .summary-table td {
   padding: 12px;
   border-bottom: 1px solid var(--border);
-  text-align: left;
+  text-align: center;
 }
 
 .report-table thead {

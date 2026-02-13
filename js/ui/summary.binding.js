@@ -169,7 +169,7 @@ function renderSCBand(card) {
 }
 
 /* ==========================================
-   4️⃣ SIZE-WISE ANALYSIS
+   4️⃣ SIZE-WISE ANALYSIS (FINAL CORRECT FORMAT)
 ========================================== */
 
 function renderSizeWise(card) {
@@ -177,31 +177,72 @@ function renderSizeWise(card) {
   const rows = computedStore.summaries.sizeWise;
   if (!rows) return;
 
-  let rowsHTML = "";
+  const categoryMap = {};
   let grandUnits = 0;
   let grandStock = 0;
 
   rows.forEach(row => {
+
+    if (!categoryMap[row.category]) {
+      categoryMap[row.category] = {
+        rows: [],
+        totalUnits: 0,
+        totalStock: 0
+      };
+    }
+
+    categoryMap[row.category].rows.push(row);
+    categoryMap[row.category].totalUnits += row.unitsSold;
+    categoryMap[row.category].totalStock += row.unitsInStock;
+
     grandUnits += row.unitsSold;
     grandStock += row.unitsInStock;
   });
 
-  rows.forEach(row => {
-    rowsHTML += `
-      <tr>
-        <td>${row.size}</td>
-        <td>${row.category}</td>
-        <td>${format(row.unitsSold)}</td>
-        <td>${format(grandUnits)}</td>
-        <td>${row.sizeShare}%</td>
-        <td>-</td>
-        <td>${format(row.unitsInStock)}</td>
-        <td>${format(grandStock)}</td>
-      </tr>
-    `;
+  let html = "";
+
+  Object.keys(categoryMap).forEach(category => {
+
+    const cat = categoryMap[category];
+    const rowspan = cat.rows.length;
+
+    const categoryShare = grandUnits > 0
+      ? ((cat.totalUnits / grandUnits) * 100).toFixed(2)
+      : 0;
+
+    cat.rows.forEach((row,index) => {
+
+      html += "<tr>";
+
+      html += `<td>${row.size}</td>`;
+
+      if(index === 0){
+        html += `<td rowspan="${rowspan}">${category}</td>`;
+      }
+
+      html += `<td>${format(row.unitsSold)}</td>`;
+
+      if(index === 0){
+        html += `<td rowspan="${rowspan}">${format(cat.totalUnits)}</td>`;
+      }
+
+      html += `<td>${row.sizeShare}%</td>`;
+
+      if(index === 0){
+        html += `<td rowspan="${rowspan}">${categoryShare}%</td>`;
+      }
+
+      html += `<td>${format(row.unitsInStock)}</td>`;
+
+      if(index === 0){
+        html += `<td rowspan="${rowspan}">${format(cat.totalStock)}</td>`;
+      }
+
+      html += "</tr>";
+    });
   });
 
-  rowsHTML += `
+  html += `
     <tr class="grand-row">
       <td colspan="2"><strong>Grand Total</strong></td>
       <td><strong>${format(grandUnits)}</strong></td>
@@ -228,7 +269,7 @@ function renderSizeWise(card) {
           <th>Total Stock</th>
         </tr>
       </thead>
-      <tbody>${rowsHTML}</tbody>
+      <tbody>${html}</tbody>
     </table>
   `;
 }

@@ -9,11 +9,11 @@ export function buildReports() {
 
   buildDemandReport();
   buildBuyBucketSummary();
+  buildSizeCurveReport();
 }
 
 /* ==========================================
-   DEMAND REPORT (GROUPED BY STYLE ID)
-   BASED ON CURRENT V1.6 LOGIC
+   DEMAND REPORT (45D / 60D / 90D)
 ========================================== */
 
 function buildDemandReport() {
@@ -25,20 +25,15 @@ function buildDemandReport() {
   const totalDays = computedStore.totalDays || 0;
 
   const skuMap = {};
-  const skuStyleMap = {};
-
-  /* ---------- SALES ---------- */
 
   salesData.forEach(row => {
 
     const sku = row["Uniware SKU"];
-    const styleID = row["Style ID"];
     const units = Number(row["Units"] || 0);
 
     if (!skuMap[sku]) {
       skuMap[sku] = {
         sku,
-        styleID,
         totalUnits: 0,
         totalStock: 0,
         inProduction: 0
@@ -48,8 +43,6 @@ function buildDemandReport() {
     skuMap[sku].totalUnits += units;
   });
 
-  /* ---------- STOCK ---------- */
-
   stockData.forEach(row => {
 
     const sku = row["Uniware SKU"];
@@ -58,7 +51,6 @@ function buildDemandReport() {
     if (!skuMap[sku]) {
       skuMap[sku] = {
         sku,
-        styleID: null,
         totalUnits: 0,
         totalStock: 0,
         inProduction: 0
@@ -68,8 +60,6 @@ function buildDemandReport() {
     skuMap[sku].totalStock += units;
   });
 
-  /* ---------- PRODUCTION ---------- */
-
   productionData.forEach(row => {
 
     const sku = row["Uniware SKU"];
@@ -78,7 +68,6 @@ function buildDemandReport() {
     if (!skuMap[sku]) {
       skuMap[sku] = {
         sku,
-        styleID: null,
         totalUnits: 0,
         totalStock: 0,
         inProduction: 0
@@ -88,11 +77,7 @@ function buildDemandReport() {
     skuMap[sku].inProduction += units;
   });
 
-  /* ==========================================
-     BUILD SKU LEVEL CALCULATIONS
-  ========================================== */
-
-  const skuRows = [];
+  const rows = [];
 
   Object.values(skuMap).forEach(obj => {
 
@@ -101,7 +86,7 @@ function buildDemandReport() {
       : 0;
 
     const sc = drr > 0
-      ? Number((obj.totalStock / drr).toFixed(0))
+      ? Math.round(obj.totalStock / drr)
       : 0;
 
     const req45 = Math.round(drr * 45);
@@ -118,125 +103,164 @@ function buildDemandReport() {
 
     const buyBucket = getSCBucket(sc);
 
-    skuRows.push({
+    rows.push({
       sku: obj.sku,
-      styleID: obj.styleID || "Unknown",
       sales: obj.totalUnits,
       stock: obj.totalStock,
       drr,
       sc,
+
       required45: req45,
       required60: req60,
       required90: req90,
+
       direct45,
       direct60,
       direct90,
+
       inProduction: obj.inProduction,
+
       pend45,
       pend60,
       pend90,
+
       buyBucket
     });
   });
 
-  /* ==========================================
-     GROUP BY STYLE ID
-  ========================================== */
-
-  const styleMap = {};
-
-  skuRows.forEach(row => {
-
-    const styleID = row.styleID || "Unknown";
-
-    if (!styleMap[styleID]) {
-      styleMap[styleID] = {
-        styleID,
-        totals: {
-          sales: 0,
-          stock: 0,
-          required45: 0,
-          required60: 0,
-          required90: 0,
-          direct45: 0,
-          direct60: 0,
-          direct90: 0,
-          inProduction: 0,
-          pend45: 0,
-          pend60: 0,
-          pend90: 0
-        },
-        skus: []
-      };
-    }
-
-    const t = styleMap[styleID].totals;
-
-    t.sales += row.sales;
-    t.stock += row.stock;
-    t.required45 += row.required45;
-    t.required60 += row.required60;
-    t.required90 += row.required90;
-    t.direct45 += row.direct45;
-    t.direct60 += row.direct60;
-    t.direct90 += row.direct90;
-    t.inProduction += row.inProduction;
-    t.pend45 += row.pend45;
-    t.pend60 += row.pend60;
-    t.pend90 += row.pend90;
-
-    styleMap[styleID].skus.push(row);
-  });
-
-  const finalRows = Object.values(styleMap);
-
-  /* Calculate DRR & SC at STYLE LEVEL */
-
-  finalRows.forEach(style => {
-
-    style.totals.drr = totalDays > 0
-      ? Number((style.totals.sales / totalDays).toFixed(2))
-      : 0;
-
-    style.totals.sc = style.totals.drr > 0
-      ? Math.round(style.totals.stock / style.totals.drr)
-      : 0;
-
-    style.buyBucket = getSCBucket(style.totals.sc);
-  });
-
-  finalRows.sort((a,b) => b.totals.sales - a.totals.sales);
+  rows.sort((a,b) => b.sales - a.sales);
 
   computedStore.reports = computedStore.reports || {};
-  computedStore.reports.demand = finalRows;
+  computedStore.reports.demand = rows;
 }
 
 /* ==========================================
-   BUY BUCKET SUMMARY (90D PENDANCY)
+   BUY BUCKET SUMMARY
 ========================================== */
 
 function buildBuyBucketSummary() {
 
-  const styles = computedStore.reports?.demand || [];
-
+  const demandRows = computedStore.reports?.demand || [];
   const bucketMap = {};
 
-  styles.forEach(style => {
+  demandRows.forEach(row => {
 
-    const bucket = style.buyBucket;
+    if (!bucketMap[row.buyBucket]) {
+      bucketMap[row.buyBucket] = 0;
+    }
 
-    if (!bucketMap[bucket]) {
-      bucketMap[bucket] = {
-        totalPendancy: 0,
-        styles: []
+    bucketMap[row.buyBucket] += row.pend90;
+  });
+
+  computedStore.reports.buyBucketSummary =
+    Object.keys(bucketMap).map(bucket => ({
+      bucket,
+      totalPendancy: bucketMap[bucket]
+    }));
+}
+
+/* ==========================================
+   SIZE CURVE REPORT (STYLE LEVEL)
+========================================== */
+
+function buildSizeCurveReport() {
+
+  const salesData = dataStore.get("Sales") || [];
+  const stockData = dataStore.get("Stock") || [];
+
+  const totalDays = computedStore.totalDays || 0;
+
+  const SIZE_ORDER = [
+    "FS","XS","S","M","L","XL","XXL",
+    "3XL","4XL","5XL","6XL",
+    "7XL","8XL","9XL","10XL"
+  ];
+
+  const styleMap = {};
+
+  /* ---------- SALES ---------- */
+
+  salesData.forEach(row => {
+
+    const style = row["Style ID"];
+    const size = row["Size"];
+    const units = Number(row["Units"] || 0);
+
+    if (!styleMap[style]) {
+      styleMap[style] = {
+        style,
+        totalSales: 0,
+        sizeSales: {},
+        sizeStock: {}
       };
     }
 
-    bucketMap[bucket].totalPendancy += style.totals.pend90;
-    bucketMap[bucket].styles.push(style);
+    styleMap[style].totalSales += units;
+
+    if (!styleMap[style].sizeSales[size]) {
+      styleMap[style].sizeSales[size] = 0;
+    }
+
+    styleMap[style].sizeSales[size] += units;
   });
 
-  computedStore.reports.buyBucketSummary = bucketMap;
+  /* ---------- STOCK ---------- */
+
+  stockData.forEach(row => {
+
+    const style = row["Style ID"];
+    const size = row["Size"];
+    const units = Number(row["Units"] || 0);
+
+    if (!styleMap[style]) return;
+
+    if (!styleMap[style].sizeStock[size]) {
+      styleMap[style].sizeStock[size] = 0;
+    }
+
+    styleMap[style].sizeStock[size] += units;
+  });
+
+  const rows = [];
+
+  Object.values(styleMap).forEach(obj => {
+
+    const styleDRR = totalDays > 0
+      ? obj.totalSales / totalDays
+      : 0;
+
+    const styleDemand45 = Math.round(styleDRR * 45);
+
+    const sizeRow = {
+      style: obj.style,
+      styleDemand: styleDemand45
+    };
+
+    SIZE_ORDER.forEach(size => {
+
+      const sizeSales = obj.sizeSales[size] || 0;
+      const sizeStock = obj.sizeStock[size] || 0;
+
+      const sizeShare =
+        obj.totalSales > 0
+          ? sizeSales / obj.totalSales
+          : 0;
+
+      const rawRequired =
+        Math.round(styleDemand45 * sizeShare);
+
+      const recommended =
+        Math.max(0, rawRequired - sizeStock);
+
+      sizeRow[size] = recommended || "";
+    });
+
+    rows.push(sizeRow);
+  });
+
+  rows.sort((a,b) => b.styleDemand - a.styleDemand);
+
+  computedStore.reports.sizeCurve = rows;
 }
 
 /* ==========================================
